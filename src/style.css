@@ -1,0 +1,21 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f1117; color: #e8eaf0; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+:root {
+  --el-bg-color: #1a1d27;
+  --el-bg-color-page: #0f1117;
+  --el-bg-color-overlay: #1a1d27;
+  --el-text-color-primary: #e8eaf0;
+  --el-text-color-regular: #c0c4cc;
+  --el-text-color-secondary: #8b90a7;
+  --el-border-color: #2a2d3e;
+  --el-border-color-light: #2a2d3e;
+  --el-fill-color-blank: #0f1117;
+  --el-fill-color: #1a1d27;
+  --el-color-primary: #f5a623;
+  --el-color-primary-light-3: rgba(245,166,35,.3);
+  --el-table-bg-color: #1a1d27;
+  --el-table-tr-bg-color: #1a1d27;
+  --el-table-header-bg-color: #1a1d27;
+  --el-table-row-hover-bg-color: #22253a;
+  --el-table-border-color: #2a2d3e;
+}
