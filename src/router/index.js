@@ -14,7 +14,9 @@ const routes = [
     children: [
       { path: 'dashboard', component: () => import('../views/Dashboard.vue'), meta: { title: '数据看板' } },
       { path: 'users', component: () => import('../views/Users.vue'), meta: { title: '用户管理' } },
-      { path: 'patterns', component: () => import('../views/Patterns.vue'), meta: { title: '图纸管理' } },
+      { path: 'patterns', component: () => import('../views/Patterns.vue'), meta: { title: '创作者图纸管理' } },
+      { path: 'user-patterns', component: () => import('../views/UserPatterns.vue'), meta: { title: '用户图纸管理' } },
+      { path: 'bead-library', component: () => import('../views/BeadLibrary.vue'), meta: { title: '品牌色盘色码' } },
       { path: 'banners', component: () => import('../views/Banners.vue'), meta: { title: 'Banner管理' } },
       { path: 'feedback', component: () => import('../views/Feedback.vue'), meta: { title: '反馈管理' } },
       { path: 'orders', component: () => import('../views/Orders.vue'), meta: { title: '订单管理' } },

@@ -17,7 +17,9 @@
         </el-menu-item-group>
         <el-menu-item-group title="内容管理">
           <el-menu-item index="/users"><el-icon><User/></el-icon>用户管理</el-menu-item>
-          <el-menu-item index="/patterns"><el-icon><Picture/></el-icon>图纸管理</el-menu-item>
+          <el-menu-item index="/patterns"><el-icon><Picture/></el-icon>创作者图纸</el-menu-item>
+          <el-menu-item index="/user-patterns"><el-icon><Tickets/></el-icon>用户图纸</el-menu-item>
+          <el-menu-item index="/bead-library"><el-icon><Grid/></el-icon>品牌色盘色码</el-menu-item>
           <el-menu-item index="/banners"><el-icon><FocusRight/></el-icon>Banner管理</el-menu-item>
           <el-menu-item index="/feedback"><el-icon><ChatDotRound/></el-icon>反馈管理</el-menu-item>
         </el-menu-item-group>

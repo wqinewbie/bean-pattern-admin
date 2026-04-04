@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <el-card shadow="never" style="margin-bottom:16px">
       <el-row :gutter="12">
@@ -36,8 +36,14 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号" width="130">
-          <template #default="{row}">{{ row.phone || '未绑定' }}</template>
+        <el-table-column prop="phone" label="手机号" width="170">
+          <template #default="{row}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span>{{ row.phone || '未绑定' }}</span>
+              <el-tag v-if="row.phone" type="success" size="small">已绑定</el-tag>
+              <el-tag v-else type="warning" size="small">未绑定</el-tag>
+            </div>
+          </template>
         </el-table-column>
         <el-table-column prop="magicCoins" label="金币" width="80" />
         <el-table-column prop="aiQuota" label="AI次数" width="80" />
