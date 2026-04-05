@@ -6,6 +6,7 @@ COPY . .
 RUN npm run build
 
 FROM nginx:1.27-alpine
-COPY deploy/admin.nginx.conf /etc/nginx/conf.d/default.conf
+ARG NGINX_CONF=deploy/admin.nginx.conf
+COPY  /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80
