@@ -58,7 +58,7 @@ const MSG_DELETE_GUARD = '仅可删除普通管理员，且不能删除当前登
 
 async function load() {
   loading.value = true
-  try { list.value = await request.get('/api/admin/admins') || [] }
+  try { list.value = await request.get('/admin/admins') || [] }
   catch {} finally { loading.value = false }
 }
 
@@ -76,7 +76,7 @@ async function save() {
     ElMessage.warning('账号和密码不能为空')
     return
   }
-  await request.post('/api/admin/admins', form.value)
+  await request.post('/admin/admins', form.value)
   ElMessage.success('添加成功')
   dialogVisible.value = false
   load()
@@ -94,7 +94,7 @@ async function removeAdmin(row) {
     return
   }
   await ElMessageBox.confirm(`确认删除管理员「${row.username}」吗？`, '提示', { type: 'warning' })
-  await request.delete(`/api/admin/admins/${row.id}`)
+  await request.delete(`/admin/admins/${row.id}`)
   ElMessage.success('删除成功')
   load()
 }

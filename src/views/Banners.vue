@@ -102,7 +102,7 @@ const pageOptions = [
 
 async function load() {
   loading.value = true
-  try { list.value = await request.get('/api/admin/banners') || [] }
+  try { list.value = await request.get('/admin/banners') || [] }
   catch {} finally { loading.value = false }
 }
 
@@ -115,9 +115,9 @@ function openModal(row) {
 
 async function save() {
   if (form.value.id) {
-    await request.put(`/api/admin/banners/${form.value.id}`, form.value)
+    await request.put(`/admin/banners/${form.value.id}`, form.value)
   } else {
-    await request.post('/api/admin/banners', form.value)
+    await request.post('/admin/banners', form.value)
   }
   ElMessage.success('保存成功')
   dialogVisible.value = false
@@ -125,7 +125,7 @@ async function save() {
 }
 
 async function toggle(row) {
-  await request.post(`/api/admin/banners/${row.id}/toggle`)
+  await request.post(`/admin/banners/${row.id}/toggle`)
   ElMessage.success(row.status ? '已下线' : '已上线')
   load()
 }

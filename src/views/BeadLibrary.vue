@@ -210,12 +210,12 @@ const selectableColorOptions = computed(() => {
   return (colors.value || []).filter((c) => !selected.has(c.code))
 })
 
-async function loadBrands() { brands.value = await request.get('/api/admin/bead/brands') }
-async function loadPalettes() { palettes.value = await request.get('/api/admin/bead/palettes') }
-async function loadColors() { colors.value = await request.get('/api/admin/bead/colors', { params: { q: colorQ.value } }) }
+async function loadBrands() { brands.value = await request.get('/admin/bead/brands') }
+async function loadPalettes() { palettes.value = await request.get('/admin/bead/palettes') }
+async function loadColors() { colors.value = await request.get('/admin/bead/colors', { params: { q: colorQ.value } }) }
 
 async function loadTree() {
-  const data = await request.get('/api/admin/bead/tree')
+  const data = await request.get('/admin/bead/tree')
   treeData.value = (data || []).map((b) => ({
     ...b,
     key: `brand_${b.id}`,
@@ -228,7 +228,7 @@ async function loadTree() {
 }
 
 async function loadPaletteColors(paletteId) {
-  paletteColors.value = await request.get(`/api/admin/bead/palettes/${paletteId}/colors`)
+  paletteColors.value = await request.get(`/admin/bead/palettes/${paletteId}/colors`)
 }
 
 async function batchAddPaletteColors() {
@@ -242,7 +242,7 @@ async function batchAddPaletteColors() {
   }
   addingBatchColors.value = true
   try {
-    const res = await request.post(`/api/admin/bead/palettes/${selectedPaletteId.value}/batch-add-colors`, {
+    const res = await request.post(`/admin/bead/palettes/${selectedPaletteId.value}/batch-add-colors`, {
       codes: batchColorCodes.value,
     })
     const added = Number(res?.addedCount || 0)
@@ -272,27 +272,27 @@ async function onTreeNodeClick(data, node) {
 
 async function createBrand() {
   if (!brandName.value.trim()) return
-  await request.post('/api/admin/bead/brands', { name: brandName.value.trim() })
+  await request.post('/admin/bead/brands', { name: brandName.value.trim() })
   brandName.value = ''
   ElMessage.success('新增成功')
   await Promise.all([loadBrands(), loadTree()])
 }
 async function editBrand(row) {
   const { value } = await ElMessageBox.prompt('请输入新品牌名', '编辑品牌', { inputValue: row.name })
-  await request.put(`/api/admin/bead/brands/${row.id}`, { name: value })
+  await request.put(`/admin/bead/brands/${row.id}`, { name: value })
   ElMessage.success('已更新')
   await Promise.all([loadBrands(), loadTree()])
 }
 async function removeBrand(row) {
   await ElMessageBox.confirm(`确认删除品牌「${row.name}」？`, '提示', { type: 'warning' })
-  await request.delete(`/api/admin/bead/brands/${row.id}`)
+  await request.delete(`/admin/bead/brands/${row.id}`)
   ElMessage.success('已删除')
   await Promise.all([loadBrands(), loadTree()])
 }
 
 async function createPalette() {
   if (!paletteName.value.trim()) return
-  await request.post('/api/admin/bead/palettes', { name: paletteName.value.trim(), remark: paletteRemark.value.trim() })
+  await request.post('/admin/bead/palettes', { name: paletteName.value.trim(), remark: paletteRemark.value.trim() })
   paletteName.value = ''
   paletteRemark.value = ''
   ElMessage.success('新增成功')
@@ -300,7 +300,7 @@ async function createPalette() {
 }
 async function editPalette(row) {
   const { value: name } = await ElMessageBox.prompt('请输入色盘名', '编辑色盘', { inputValue: row.name })
-  await request.put(`/api/admin/bead/palettes/${row.id}`, { name, remark: row.remark || '' })
+  await request.put(`/admin/bead/palettes/${row.id}`, { name, remark: row.remark || '' })
   ElMessage.success('已更新')
   await Promise.all([loadPalettes(), loadTree()])
 }
@@ -314,7 +314,7 @@ async function enterPaletteForBatchAdd(row) {
 }
 async function removePalette(row) {
   await ElMessageBox.confirm(`确认删除色盘「${row.name}」？`, '提示', { type: 'warning' })
-  await request.delete(`/api/admin/bead/palettes/${row.id}`)
+  await request.delete(`/admin/bead/palettes/${row.id}`)
   ElMessage.success('已删除')
   await Promise.all([loadPalettes(), loadTree()])
 }
@@ -366,8 +366,8 @@ async function saveColor() {
     g: Number(colorForm.g || 0),
     b: Number(colorForm.b || 0),
   }
-  if (colorForm.id) await request.put(`/api/admin/bead/colors/${colorForm.id}`, payload)
-  else await request.post('/api/admin/bead/colors', payload)
+  if (colorForm.id) await request.put(`/admin/bead/colors/${colorForm.id}`, payload)
+  else await request.post('/admin/bead/colors', payload)
   colorDialogVisible.value = false
   ElMessage.success('已保存')
   await loadColors()
@@ -377,11 +377,11 @@ async function saveColor() {
 }
 async function removeColor(row) {
   await ElMessageBox.confirm(`确认删除色码「${row.code}」？`, '提示', { type: 'warning' })
-  await request.delete(`/api/admin/bead/colors/${row.id}`)
+  await request.delete(`/admin/bead/colors/${row.id}`)
   ElMessage.success('已删除')
   await loadColors()
   if (selectedPaletteId.value) {
-    paletteColors.value = await request.get(`/api/admin/bead/palettes/${selectedPaletteId.value}/colors`)
+    paletteColors.value = await request.get(`/admin/bead/palettes/${selectedPaletteId.value}/colors`)
   }
 }
 

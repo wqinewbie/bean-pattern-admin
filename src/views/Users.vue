@@ -97,7 +97,7 @@ let searchTimer = null
 async function load() {
   loading.value = true
   try {
-    const data = await request.get('/api/admin/users', {
+    const data = await request.get('/admin/users', {
       params: { page: page.value, pageSize: pageSize.value, q: q.value, vipLevel: filterVip.value, status: filterStatus.value }
     })
     list.value = data.list || []
@@ -115,7 +115,7 @@ function handleSearch() {
 async function toggleStatus(row) {
   const action = row.status ? '禁用' : '启用'
   await ElMessageBox.confirm(`确定要${action}用户「${row.nickName}」吗？`, '提示', { type: 'warning' })
-  await request.post(`/api/admin/users/${row.id}/toggle-status`)
+  await request.post(`/admin/users/${row.id}/toggle-status`)
   ElMessage.success(`已${action}`)
   load()
 }

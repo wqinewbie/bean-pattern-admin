@@ -59,7 +59,7 @@ const form = ref({})
 
 async function load() {
   loading.value = true
-  try { list.value = await request.get('/api/admin/vip-plans') || [] }
+  try { list.value = await request.get('/admin/vip-plans') || [] }
   catch {} finally { loading.value = false }
 }
 
@@ -70,9 +70,9 @@ function openModal(row) {
 
 async function save() {
   if (form.value.id) {
-    await request.put(`/api/admin/vip-plans/${form.value.id}`, form.value)
+    await request.put(`/admin/vip-plans/${form.value.id}`, form.value)
   } else {
-    await request.post('/api/admin/vip-plans', form.value)
+    await request.post('/admin/vip-plans', form.value)
   }
   ElMessage.success('保存成功')
   dialogVisible.value = false
@@ -80,7 +80,7 @@ async function save() {
 }
 
 async function toggle(row) {
-  await request.post(`/api/admin/vip-plans/${row.id}/toggle`)
+  await request.post(`/admin/vip-plans/${row.id}/toggle`)
   ElMessage.success(row.status ? '已下线' : '已上线')
   load()
 }

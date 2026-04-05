@@ -47,7 +47,7 @@ const filterStatus = ref('')
 async function load() {
   loading.value = true
   try {
-    const data = await request.get('/api/admin/orders', { params: { page: page.value, pageSize: pageSize.value, status: filterStatus.value } })
+    const data = await request.get('/admin/orders', { params: { page: page.value, pageSize: pageSize.value, status: filterStatus.value } })
     list.value = data.list || []
     total.value = data.total || 0
   } catch {} finally { loading.value = false }

@@ -63,7 +63,7 @@ const timeline = ref([
 
 onMounted(async () => {
   try {
-    const data = await request.get('/api/admin/dashboard')
+    const data = await request.get('/admin/dashboard')
     if (data) {
       stats.value[0].num = data.totalUsers ?? '-'
       stats.value[1].num = data.todayIncome ? '¥' + data.todayIncome : '-'

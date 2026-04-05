@@ -71,27 +71,27 @@ const statusType = s => ({0:'warning',1:'success',2:'info',3:'danger'}[s] ?? 'in
 async function load() {
   loading.value = true
   try {
-    const data = await request.get('/api/admin/patterns', { params: { page: page.value, pageSize: pageSize.value, status: filterStatus.value } })
+    const data = await request.get('/admin/patterns', { params: { page: page.value, pageSize: pageSize.value, status: filterStatus.value } })
     list.value = data.list || []
     total.value = data.total || 0
   } catch {} finally { loading.value = false }
 }
 
 async function approve(row) {
-  await request.post(`/api/admin/patterns/${row.id}/approve`)
+  await request.post(`/admin/patterns/${row.id}/approve`)
   ElMessage.success('已通过')
   load()
 }
 
 async function reject(row) {
   const { value } = await ElMessageBox.prompt('请输入拒绝原因', '拒绝', { inputPlaceholder: '原因...' })
-  await request.post(`/api/admin/patterns/${row.id}/reject`, { reason: value })
+  await request.post(`/admin/patterns/${row.id}/reject`, { reason: value })
   ElMessage.success('已拒绝')
   load()
 }
 
 async function toggleOnline(row) {
-  await request.post(`/api/admin/patterns/${row.id}/toggle-online`)
+  await request.post(`/admin/patterns/${row.id}/toggle-online`)
   ElMessage.success(row.status === 1 ? '已下线' : '已上线')
   load()
 }

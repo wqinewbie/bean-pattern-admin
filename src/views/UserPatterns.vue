@@ -108,7 +108,7 @@ const statusType = (s) => ({ SUCCESS: 'success', FAILED: 'danger', CREATED: 'war
 async function load() {
   loading.value = true
   try {
-    const data = await request.get('/api/admin/user-patterns', {
+    const data = await request.get('/admin/user-patterns', {
       params: {
         page: page.value,
         pageSize: pageSize.value,

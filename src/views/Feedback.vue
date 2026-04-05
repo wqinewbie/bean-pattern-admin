@@ -35,12 +35,12 @@ const loading = ref(false)
 
 async function load() {
   loading.value = true
-  try { list.value = await request.get('/api/admin/feedback') || [] }
+  try { list.value = await request.get('/admin/feedback') || [] }
   catch {} finally { loading.value = false }
 }
 
 async function close(row) {
-  await request.post(`/api/admin/feedback/${row.id}/close`)
+  await request.post(`/admin/feedback/${row.id}/close`)
   ElMessage.success('已关闭')
   load()
 }
