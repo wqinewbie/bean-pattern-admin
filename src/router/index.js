@@ -18,6 +18,7 @@ const routes = [
       { path: 'user-patterns', component: () => import('../views/UserPatterns.vue'), meta: { title: '用户图纸管理' } },
       { path: 'bead-library', component: () => import('../views/BeadLibrary.vue'), meta: { title: '品牌色盘色码' } },
       { path: 'banners', component: () => import('../views/Banners.vue'), meta: { title: 'Banner管理' } },
+      { path: 'tutorials', component: () => import('../views/Tutorials.vue'), meta: { title: '魔法小课堂' } },
       { path: 'feedback', component: () => import('../views/Feedback.vue'), meta: { title: '反馈管理' } },
       { path: 'orders', component: () => import('../views/Orders.vue'), meta: { title: '订单管理' } },
       { path: 'vip', component: () => import('../views/VipPlans.vue'), meta: { title: 'VIP套餐' } },
