@@ -36,10 +36,28 @@
         <el-form-item label="描述">
           <el-input v-model="form.description" type="textarea" :rows="2" placeholder="简短描述教程内容" />
         </el-form-item>
-        <el-form-item label="视频地址" required>
-          <el-input v-model="form.videoUrl" placeholder="外部视频链接地址" />
+        <el-form-item label="视频上传" required>
+          <div v-if="form.videoUrl" style="margin-bottom:8px">
+            <el-tag type="success">已上传</el-tag>
+            <span style="margin-left:8px;color:#67C23A;font-size:12px;word-break:break-all">{{ form.videoUrl }}</span>
+          </div>
+          <div v-else style="margin-bottom:8px;color:#E6A23C;font-size:12px">未上传视频</div>
+          <el-upload
+            :action="uploadUrl"
+            :headers="{ Authorization: 'Bearer ' + token }"
+            accept="video/*"
+            :show-file-list="false"
+            :before-upload="beforeVideoUpload"
+            :on-success="onVideoUploadSuccess"
+            :on-error="onVideoUploadError"
+          >
+            <el-button type="primary" :loading="uploading">
+              <el-icon v-if="!uploading"><Upload/></el-icon>
+              {{ uploading ? '上传中...' : (form.videoUrl ? '重新上传' : '上传视频') }}
+            </el-button>
+          </el-upload>
           <div style="margin-top:8px;color:#909399;font-size:12px">
-            支持微信视频号、B站等可直接访问的视频链接
+            支持 mp4、mov 等视频格式，建议小于 100MB
           </div>
         </el-form-item>
         <el-form-item label="排序">
@@ -55,14 +73,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '../stores/auth'
 import request from '../utils/request'
+
+const auth = useAuthStore()
+const token = computed(() => auth.token || '')
+const uploadUrl = computed(() => (import.meta.env.VITE_API_BASE_URL || '') + '/api/admin/tutorials/video-upload')
 
 const list = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({})
+const uploading = ref(false)
 
 async function load() {
   loading.value = true
@@ -77,13 +101,43 @@ function openModal(row) {
   dialogVisible.value = true
 }
 
+function beforeVideoUpload(file) {
+  const isVideo = file.type.startsWith('video/')
+  if (!isVideo) {
+    ElMessage.error('只能上传视频文件')
+    return false
+  }
+  const isLt100M = file.size / 1024 / 1024 < 100
+  if (!isLt100M) {
+    ElMessage.error('视频大小不能超过 100MB')
+    return false
+  }
+  uploading.value = true
+  return true
+}
+
+function onVideoUploadSuccess(res) {
+  uploading.value = false
+  if (res.code === 0 && res.data && res.data.originalUrl) {
+    form.value.videoUrl = res.data.originalUrl
+    ElMessage.success('视频上传成功')
+  } else {
+    ElMessage.error(res.message || '上传失败')
+  }
+}
+
+function onVideoUploadError() {
+  uploading.value = false
+  ElMessage.error('视频上传失败，请重试')
+}
+
 async function save() {
   if (!form.value.title) {
     ElMessage.warning('请填写标题')
     return
   }
   if (!form.value.videoUrl) {
-    ElMessage.warning('请填写视频地址')
+    ElMessage.warning('请上传视频')
     return
   }
   if (form.value.id) {
