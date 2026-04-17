@@ -36,6 +36,28 @@
         <el-form-item label="描述">
           <el-input v-model="form.description" type="textarea" :rows="2" placeholder="简短描述教程内容" />
         </el-form-item>
+        <el-form-item label="封面图">
+          <div v-if="form.thumbnailUrl" style="margin-bottom:8px">
+            <el-image :src="form.thumbnailUrl" style="width:120px;height:80px" fit="cover" />
+          </div>
+          <el-upload
+            :action="imageUploadUrl"
+            :headers="{ Authorization: 'Bearer ' + token }"
+            accept="image/*"
+            :show-file-list="false"
+            :before-upload="beforeImageUpload"
+            :on-success="onImageUploadSuccess"
+            :on-error="onImageUploadError"
+          >
+            <el-button type="primary" :loading="uploadingImage">
+              <el-icon v-if="!uploadingImage"><Upload/></el-icon>
+              {{ uploadingImage ? '上传中...' : (form.thumbnailUrl ? '更换封面' : '上传封面') }}
+            </el-button>
+          </el-upload>
+          <div style="margin-top:8px;color:#909399;font-size:12px">
+            建议尺寸 16:9，支持 jpg、png 格式，不超过 2MB
+          </div>
+        </el-form-item>
         <el-form-item label="视频上传" required>
           <div v-if="form.videoUrl" style="margin-bottom:8px">
             <el-tag type="success">已上传</el-tag>
@@ -81,12 +103,14 @@ import request from '../utils/request'
 const auth = useAuthStore()
 const token = computed(() => auth.token || '')
 const uploadUrl = computed(() => (import.meta.env.VITE_API_BASE_URL || '') + '/api/admin/tutorials/video-upload')
+const imageUploadUrl = computed(() => (import.meta.env.VITE_API_BASE_URL || '') + '/api/image/upload')
 
 const list = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({})
 const uploading = ref(false)
+const uploadingImage = ref(false)
 
 async function load() {
   loading.value = true
@@ -97,8 +121,38 @@ async function load() {
 function openModal(row) {
   form.value = row
     ? { ...row }
-    : { title: '', description: '', videoUrl: '', sortOrder: 1 }
+    : { title: '', description: '', videoUrl: '', thumbnailUrl: '', sortOrder: 1 }
   dialogVisible.value = true
+}
+
+function beforeImageUpload(file) {
+  const isImage = file.type.startsWith('image/')
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件')
+    return false
+  }
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    ElMessage.error('图片大小不能超过 2MB')
+    return false
+  }
+  uploadingImage.value = true
+  return true
+}
+
+function onImageUploadSuccess(res) {
+  uploadingImage.value = false
+  if (res.code === 0 && res.data && res.data.originalUrl) {
+    form.value.thumbnailUrl = res.data.originalUrl
+    ElMessage.success('封面上传成功')
+  } else {
+    ElMessage.error(res.message || '上传失败')
+  }
+}
+
+function onImageUploadError() {
+  uploadingImage.value = false
+  ElMessage.error('封面上传失败，请重试')
 }
 
 function beforeVideoUpload(file) {
