@@ -24,6 +24,8 @@ const routes = [
       { path: 'vip', component: () => import('../views/VipPlans.vue'), meta: { title: 'VIP套餐' } },
       { path: 'withdraw', component: () => import('../views/Withdraw.vue'), meta: { title: '提现管理' } },
       { path: 'admins', component: () => import('../views/Admins.vue'), meta: { title: '管理员' } },
+      { path: 'watermark', component: () => import('../views/Watermark.vue'), meta: { title: '水印配置' } },
+      { path: 'popup', component: () => import('../views/Popup.vue'), meta: { title: '弹窗管理' } },
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/' }
