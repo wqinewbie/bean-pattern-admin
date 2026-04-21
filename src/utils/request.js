@@ -35,4 +35,21 @@ request.interceptors.response.use(
   }
 )
 
+// 文件上传
+request.upload = async (url, formData) => {
+  const auth = useAuthStore()
+  const res = await axios.post((import.meta.env.VITE_API_BASE_URL || '') + '/api' + url, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      ...(auth.token ? { Authorization: 'Bearer ' + auth.token } : {})
+    },
+    timeout: 60000,
+  })
+  if (res.data.code !== 0) {
+    throw new Error(res.data.message || '上传失败')
+  }
+  // 返回 imageUrl 字段
+  return { url: res.data.data?.imageUrl || res.data.data?.originalUrl || '' }
+}
+
 export default request

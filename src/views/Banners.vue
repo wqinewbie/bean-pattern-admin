@@ -8,14 +8,19 @@
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="sortOrder" label="排序" width="70" />
         <el-table-column prop="title" label="标题" min-width="140" />
-        <el-table-column prop="subTitle" label="副标题" min-width="160" />
-        <el-table-column prop="tagText" label="标签" width="100" />
-        <el-table-column label="跳转" min-width="260">
+        <el-table-column label="背景色" width="90">
           <template #default="{row}">
-            <el-tag size="small" type="info" style="margin-right:8px">{{ row.linkType || 'NONE' }}</el-tag>
-            <span style="color:#606266">{{ row.linkValue || '无' }}</span>
+            <span v-if="row.bgColor" :style="{display:'inline-block',width:'24px',height:'24px',background:row.bgColor,borderRadius:'4px',border:'1px solid #ddd'}"></span>
+            <span v-else style="color:#999">默认</span>
           </template>
         </el-table-column>
+        <el-table-column label="图片" width="100">
+          <template #default="{row}">
+            <el-image v-if="row.imageUrl" :src="row.imageUrl" fit="cover" style="width:60px;height:40px;border-radius:4px" :preview-src-list="[row.imageUrl]" />
+            <span v-else style="color:#999">无</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="tagText" label="标签" width="100" />
         <el-table-column label="状态" width="90">
           <template #default="{row}">
             <el-tag :type="row.status ? 'success' : 'info'" size="small">{{ row.status ? '上线' : '下线' }}</el-tag>
@@ -30,13 +35,36 @@
       </el-table>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑Banner' : '新增Banner'" width="620px">
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑Banner' : '新增Banner'" width="700px">
       <el-form :model="form" label-width="90px">
         <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
         <el-form-item label="副标题"><el-input v-model="form.subTitle" /></el-form-item>
-        <el-form-item label="图片URL"><el-input v-model="form.imageUrl" /></el-form-item>
         <el-form-item label="标签"><el-input v-model="form.tagText" /></el-form-item>
+        <el-form-item label="背景颜色">
+          <el-color-picker v-model="form.bgColor" show-alpha />
+          <span style="margin-left:12px;color:#909399;font-size:12px">支持渐变，格式：#FF9800, #FFB74D</span>
+        </el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sortOrder" :min="1" /></el-form-item>
+
+        <!-- 图片上传 -->
+        <el-form-item label="图片">
+          <div class="image-upload-area">
+            <el-upload
+              class="image-uploader"
+              :show-file-list="false"
+              :before-upload="beforeUpload"
+              accept="image/*"
+            >
+              <img v-if="form.imageUrl" :src="form.imageUrl" class="uploaded-image" />
+              <el-icon v-else class="uploader-icon"><Plus /></el-icon>
+            </el-upload>
+            <div class="upload-tip">
+              <p>建议尺寸：400×288px</p>
+              <p>点击上传图片，支持裁剪</p>
+            </div>
+          </div>
+        </el-form-item>
 
         <el-form-item label="跳转类型">
           <el-select v-model="form.linkType" style="width:100%">
@@ -69,7 +97,32 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible=false">取消</el-button>
-        <el-button type="primary" @click="save">保存</el-button>
+        <el-button type="primary" @click="save" :loading="saving">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 图片裁剪弹窗 -->
+    <el-dialog v-model="cropperVisible" title="裁剪图片" width="800px">
+      <div class="cropper-container">
+        <vue-cropper
+          ref="cropperRef"
+          :src="cropperImg"
+          :aspect-ratio="400/288"
+          :view-mode="1"
+          :drag-mode="'move'"
+          :guides="true"
+          :center="true"
+          :highlight="false"
+          :background="true"
+          :responsive="true"
+          :checkOrientation="false"
+          @ready="onCropperReady"
+        />
+      </div>
+      <template #footer>
+        <el-button @click="cropperVisible=false">取消</el-button>
+        <el-button @click="rotateCropper">旋转</el-button>
+        <el-button type="primary" @click="confirmCrop" :loading="uploading">确认裁剪并上传</el-button>
       </template>
     </el-dialog>
   </div>
@@ -79,11 +132,20 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
+import { VueCropper } from 'vue-cropper'
+import 'vue-cropper/dist/style.css'
 
 const list = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({})
+const saving = ref(false)
+
+// 图片裁剪相关
+const cropperVisible = ref(false)
+const cropperImg = ref('')
+const cropperRef = ref(null)
+const uploading = ref(false)
 
 const pageOptions = [
   { label: '首页', value: '/pages/home/home' },
@@ -109,19 +171,26 @@ async function load() {
 function openModal(row) {
   form.value = row
     ? { ...row }
-    : { title: '', subTitle: '', imageUrl: '', tagText: '', sortOrder: 1, linkType: 'NONE', linkValue: '' }
+    : { title: '', subTitle: '', imageUrl: '', tagText: '', bgColor: '', sortOrder: 1, linkType: 'NONE', linkValue: '' }
   dialogVisible.value = true
 }
 
 async function save() {
-  if (form.value.id) {
-    await request.put(`/admin/banners/${form.value.id}`, form.value)
-  } else {
-    await request.post('/admin/banners', form.value)
+  saving.value = true
+  try {
+    if (form.value.id) {
+      await request.put(`/admin/banners/${form.value.id}`, form.value)
+    } else {
+      await request.post('/admin/banners', form.value)
+    }
+    ElMessage.success('保存成功')
+    dialogVisible.value = false
+    load()
+  } catch (e) {
+    ElMessage.error('保存失败')
+  } finally {
+    saving.value = false
   }
-  ElMessage.success('保存成功')
-  dialogVisible.value = false
-  load()
 }
 
 async function toggle(row) {
@@ -130,5 +199,117 @@ async function toggle(row) {
   load()
 }
 
+// 图片上传相关
+function beforeUpload(file) {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    cropperImg.value = e.target.result
+    cropperVisible.value = true
+  }
+  reader.readAsDataURL(file)
+  return false // 阻止默认上传
+}
+
+function onCropperReady() {
+  // 裁剪器准备就绪
+}
+
+function rotateCropper() {
+  if (cropperRef.value) {
+    cropperRef.value.rotateRight()
+  }
+}
+
+async function confirmCrop() {
+  if (!cropperRef.value) return
+
+  uploading.value = true
+  try {
+    // 获取裁剪后的 canvas
+    const cropper = cropperRef.value
+    const canvas = cropper.getCroppedCanvas({
+      width: 400,
+      height: 288,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    })
+
+    if (!canvas) {
+      throw new Error('获取裁剪画布失败')
+    }
+
+    // 转换为 blob
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9))
+
+    // 上传到服务器
+    const formData = new FormData()
+    formData.append('file', blob, 'banner.jpg')
+
+    const res = await request.upload('/image/upload', formData)
+    if (res && res.url) {
+      form.value.imageUrl = res.url
+      cropperVisible.value = false
+      ElMessage.success('图片上传成功')
+    } else {
+      ElMessage.error('图片上传失败')
+    }
+  } catch (e) {
+    console.error('上传失败:', e)
+    ElMessage.error('图片处理失败')
+  } finally {
+    uploading.value = false
+  }
+}
+
 onMounted(load)
 </script>
+
+<style scoped>
+.image-upload-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.image-uploader {
+  width: 160px;
+  height: 115px;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s;
+}
+
+.image-uploader:hover {
+  border-color: #409eff;
+}
+
+.uploaded-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploader-icon {
+  font-size: 28px;
+  color: #8c9399;
+}
+
+.upload-tip {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.cropper-container {
+  width: 100%;
+  height: 400px;
+  background: #eee;
+  border-radius: 8px;
+}
+</style>
+</template>
