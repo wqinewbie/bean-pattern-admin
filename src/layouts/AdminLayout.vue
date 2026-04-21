@@ -21,6 +21,7 @@
           <el-menu-item index="/user-patterns"><el-icon><Tickets/></el-icon>用户图纸</el-menu-item>
           <el-menu-item index="/bead-library"><el-icon><Grid/></el-icon>品牌色盘色码</el-menu-item>
           <el-menu-item index="/banners"><el-icon><FocusRight/></el-icon>Banner管理</el-menu-item>
+          <el-menu-item index="/popup"><el-icon><Bell/></el-icon>弹窗管理</el-menu-item>
           <el-menu-item index="/tutorials"><el-icon><MagicStick/></el-icon>魔法小课堂</el-menu-item>
           <el-menu-item index="/feedback"><el-icon><ChatDotRound/></el-icon>反馈管理</el-menu-item>
         </el-menu-item-group>

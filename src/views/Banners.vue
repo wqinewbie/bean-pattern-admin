@@ -1,26 +1,26 @@
-﻿<template>
+<template>
   <div>
     <el-card shadow="never" style="margin-bottom: 16px">
       <el-button type="primary" @click="openModal(null)">
         <el-icon><Plus /></el-icon>
-        New Banner
+        新建 Banner
       </el-button>
     </el-card>
 
     <el-card shadow="never">
       <el-table :data="list" v-loading="loading" stripe>
-        <el-table-column prop="sortOrder" label="Sort" width="80" />
-        <el-table-column prop="title" label="Title" min-width="160" />
-        <el-table-column label="Bg" width="90">
+        <el-table-column prop="sortOrder" label="排序" width="80" />
+        <el-table-column prop="title" label="标题" min-width="160" />
+        <el-table-column label="背景色" width="90">
           <template #default="{ row }">
             <span
               v-if="row.bgColor"
               :style="{ display: 'inline-block', width: '24px', height: '24px', background: row.bgColor, borderRadius: '4px', border: '1px solid #ddd' }"
             ></span>
-            <span v-else style="color: #999">Default</span>
+            <span v-else style="color: #999">默认</span>
           </template>
         </el-table-column>
-        <el-table-column label="Image" width="100">
+        <el-table-column label="图片" width="100">
           <template #default="{ row }">
             <el-image
               v-if="row.imageUrl"
@@ -29,50 +29,50 @@
               style="width: 60px; height: 40px; border-radius: 4px"
               :preview-src-list="[row.imageUrl]"
             />
-            <span v-else style="color: #999">None</span>
+            <span v-else style="color: #999">无</span>
           </template>
         </el-table-column>
-        <el-table-column prop="tagText" label="Tag" width="120" />
-        <el-table-column label="Status" width="90">
+        <el-table-column prop="tagText" label="标签" width="120" />
+        <el-table-column label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.status ? 'success' : 'info'" size="small">{{ row.status ? 'On' : 'Off' }}</el-tag>
+            <el-tag :type="row.status ? 'success' : 'info'" size="small">{{ row.status ? '启用' : '停用' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Actions" width="170" fixed="right">
+        <el-table-column label="操作" width="170" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="openModal(row)">Edit</el-button>
+            <el-button size="small" @click="openModal(row)">编辑</el-button>
             <el-button size="small" :type="row.status ? 'danger' : 'success'" @click="toggle(row)">
-              {{ row.status ? 'Off' : 'On' }}
+              {{ row.status ? '停用' : '启用' }}
             </el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="form.id ? 'Edit Banner' : 'New Banner'" width="700px">
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑 Banner' : '新建 Banner'" width="700px">
       <el-form :model="form" label-width="100px">
-        <el-form-item label="Title"><el-input v-model="form.title" /></el-form-item>
-        <el-form-item label="Subtitle"><el-input v-model="form.subTitle" /></el-form-item>
-        <el-form-item label="Tag"><el-input v-model="form.tagText" /></el-form-item>
-        <el-form-item label="Background">
+        <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
+        <el-form-item label="副标题"><el-input v-model="form.subTitle" /></el-form-item>
+        <el-form-item label="标签"><el-input v-model="form.tagText" /></el-form-item>
+        <el-form-item label="背景色">
           <el-color-picker v-model="form.bgColor" show-alpha />
         </el-form-item>
-        <el-form-item label="Sort"><el-input-number v-model="form.sortOrder" :min="1" /></el-form-item>
+        <el-form-item label="排序"><el-input-number v-model="form.sortOrder" :min="1" /></el-form-item>
 
-        <el-form-item label="Image">
+        <el-form-item label="图片">
           <div class="image-upload-area">
             <el-upload class="image-uploader" :show-file-list="false" :before-upload="beforeUpload" accept="image/*">
               <img v-if="form.imageUrl" :src="form.imageUrl" class="uploaded-image" />
               <el-icon v-else class="uploader-icon"><Plus /></el-icon>
             </el-upload>
             <div class="upload-tip">
-              <p>Recommended: 400×288</p>
-              <p>Click to upload and crop</p>
+              <p>推荐尺寸：400×288</p>
+              <p>点击上传并裁剪</p>
             </div>
           </div>
         </el-form-item>
 
-        <el-form-item label="Link Type">
+        <el-form-item label="跳转类型">
           <el-select v-model="form.linkType" style="width: 100%">
             <el-option label="NONE" value="NONE" />
             <el-option label="PAGE" value="PAGE" />
@@ -80,23 +80,23 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="Link Value" v-if="form.linkType === 'PAGE'">
+        <el-form-item label="跳转值" v-if="form.linkType === 'PAGE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
             <el-option v-for="item in pageOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="Link Value" v-else>
+        <el-form-item label="跳转值" v-else>
           <el-input v-model="form.linkValue" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="save" :loading="saving">Save</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="save" :loading="saving">保存</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="cropperVisible" title="Crop Image" width="800px">
+    <el-dialog v-model="cropperVisible" title="裁剪图片" width="800px">
       <div class="cropper-container">
         <vue-cropper
           ref="cropperRef"
@@ -112,9 +112,9 @@
         />
       </div>
       <template #footer>
-        <el-button @click="cropperVisible = false">Cancel</el-button>
-        <el-button @click="rotateCropper">Rotate</el-button>
-        <el-button type="primary" @click="confirmCrop" :loading="uploading">Confirm Crop & Upload</el-button>
+        <el-button @click="cropperVisible = false">取消</el-button>
+        <el-button @click="rotateCropper">旋转</el-button>
+        <el-button type="primary" @click="confirmCrop" :loading="uploading">确认裁剪并上传</el-button>
       </template>
     </el-dialog>
   </div>
@@ -140,17 +140,17 @@ const cropperRef = ref(null)
 const uploading = ref(false)
 
 const pageOptions = [
-  { label: 'Home', value: '/pages/home/home' },
-  { label: 'Convert', value: '/pages/convert/convert' },
-  { label: 'AI Generate', value: '/pages/ai-generate/ai-generate' },
-  { label: 'Profile', value: '/pages/profile/profile' },
-  { label: 'Generate', value: '/pages/generate/generate' },
-  { label: 'History', value: '/pages/history/history' },
-  { label: 'My Patterns', value: '/pages/my-patterns/my-patterns' },
-  { label: 'Draw', value: '/pages/draw/draw' },
-  { label: 'Generating', value: '/pages/generating/generating' },
-  { label: 'Result', value: '/pages/result/result' },
-  { label: 'Focus Mode', value: '/pages/focus-mode/focus-mode' },
+  { label: '首页', value: '/pages/home/home' },
+  { label: '图片转图纸', value: '/pages/convert/convert' },
+  { label: 'AI 生成', value: '/pages/ai-generate/ai-generate' },
+  { label: '我的', value: '/pages/profile/profile' },
+  { label: '生成页', value: '/pages/generate/generate' },
+  { label: '时光机', value: '/pages/history/history' },
+  { label: '图纸箱', value: '/pages/my-patterns/my-patterns' },
+  { label: '画板', value: '/pages/draw/draw' },
+  { label: '生成中', value: '/pages/generating/generating' },
+  { label: '结果页', value: '/pages/result/result' },
+  { label: '专注模式', value: '/pages/focus-mode/focus-mode' },
   { label: 'VIP', value: '/pages/vip/vip' }
 ]
 
@@ -178,11 +178,11 @@ async function save() {
     } else {
       await request.post('/admin/banners', form.value)
     }
-    ElMessage.success('Saved')
+    ElMessage.success('保存成功')
     dialogVisible.value = false
     load()
   } catch {
-    ElMessage.error('Save failed')
+    ElMessage.error('保存失败')
   } finally {
     saving.value = false
   }
@@ -190,7 +190,7 @@ async function save() {
 
 async function toggle(row) {
   await request.post(`/admin/banners/${row.id}/toggle`)
-  ElMessage.success(row.status ? 'Switched off' : 'Switched on')
+  ElMessage.success(row.status ? '已停用' : '已启用')
   load()
 }
 
@@ -212,7 +212,7 @@ function rotateCropper() {
 
 async function confirmCrop() {
   if (!cropperRef.value || typeof cropperRef.value.getCropBlob !== 'function') {
-    ElMessage.error('Cropper not ready')
+    ElMessage.error('裁剪器未就绪')
     return
   }
 
@@ -232,13 +232,13 @@ async function confirmCrop() {
     if (res?.url) {
       form.value.imageUrl = res.url
       cropperVisible.value = false
-      ElMessage.success('Upload success')
+      ElMessage.success('上传成功')
     } else {
-      ElMessage.error('Upload failed')
+      ElMessage.error('上传失败')
     }
   } catch (e) {
     console.error('Upload failed:', e)
-    ElMessage.error('Image process failed')
+    ElMessage.error('图片处理失败')
   } finally {
     uploading.value = false
   }
@@ -295,5 +295,3 @@ onMounted(load)
   border-radius: 8px;
 }
 </style>
-
-

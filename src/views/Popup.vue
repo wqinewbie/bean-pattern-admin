@@ -5,7 +5,7 @@
       <el-button type="primary" @click="handleAdd">添加弹窗</el-button>
     </div>
 
-    <el-table :data="popups" border style="width: 100%">
+    <el-table :data="popups" v-loading="tableLoading" border style="width: 100%">
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="key" label="标识" width="120" />
       <el-table-column prop="title" label="标题" min-width="150" />
@@ -75,7 +75,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
+        <el-button type="primary" @click="handleSave" :loading="saveLoading" :disabled="saveLoading">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -84,8 +84,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import request from '../utils/request'
 
 const popups = ref([])
+const tableLoading = ref(false)
+const saveLoading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const form = ref({
@@ -104,16 +107,13 @@ const form = ref({
 })
 
 const loadPopups = async () => {
+  tableLoading.value = true
   try {
-    const res = await fetch('/api/admin/popup/list', {
-      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('admin_token') }
-    })
-    const data = await res.json()
-    if (data.code === 0) {
-      popups.value = data.data || []
-    }
+    popups.value = (await request.get('/admin/popup/list')) || []
   } catch (e) {
-    console.error(e)
+    ElMessage.error('加载弹窗失败')
+  } finally {
+    tableLoading.value = false
   }
 }
 
@@ -143,40 +143,26 @@ const handleEdit = (row) => {
 }
 
 const handleSave = async () => {
+  if (saveLoading.value) return
+  saveLoading.value = true
   try {
-    const res = await fetch('/api/admin/popup/save', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + localStorage.getItem('admin_token')
-      },
-      body: JSON.stringify(form.value)
-    })
-    const data = await res.json()
-    if (data.code === 0) {
-      ElMessage.success('保存成功')
-      dialogVisible.value = false
-      loadPopups()
-    } else {
-      ElMessage.error(data.message || '保存失败')
-    }
+    await request.post('/admin/popup/save', form.value)
+    ElMessage.success('保存成功')
+    dialogVisible.value = false
+    loadPopups()
   } catch (e) {
     ElMessage.error('保存失败')
+  } finally {
+    saveLoading.value = false
   }
 }
 
 const handleDelete = async (id) => {
   try {
     await ElMessageBox.confirm('确认删除该弹窗配置？', '提示', { type: 'warning' })
-    const res = await fetch('/api/admin/popup/delete/' + id, {
-      method: 'DELETE',
-      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('admin_token') }
-    })
-    const data = await res.json()
-    if (data.code === 0) {
-      ElMessage.success('删除成功')
-      loadPopups()
-    }
+    await request.delete('/admin/popup/delete/' + id)
+    ElMessage.success('删除成功')
+    loadPopups()
   } catch (e) {}
 }
 
