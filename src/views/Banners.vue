@@ -123,6 +123,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { VueCropper } from 'vue-cropper'
 import 'vue-cropper/dist/index.css'
@@ -294,3 +295,5 @@ onMounted(load)
   border-radius: 8px;
 }
 </style>
+
+
