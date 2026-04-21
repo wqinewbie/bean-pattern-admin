@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <el-card shadow="never" style="margin-bottom:16px">
       <el-button type="primary" @click="openModal(null)"><el-icon><Plus/></el-icon> 新增Banner</el-button>
@@ -35,7 +35,6 @@
       </el-table>
     </el-card>
 
-    <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="form.id ? '编辑Banner' : '新增Banner'" width="700px">
       <el-form :model="form" label-width="90px">
         <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
@@ -47,7 +46,6 @@
         </el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sortOrder" :min="1" /></el-form-item>
 
-        <!-- 图片上传 -->
         <el-form-item label="图片">
           <div class="image-upload-area">
             <el-upload
@@ -101,7 +99,6 @@
       </template>
     </el-dialog>
 
-    <!-- 图片裁剪弹窗 -->
     <el-dialog v-model="cropperVisible" title="裁剪图片" width="800px">
       <div class="cropper-container">
         <vue-cropper
@@ -133,7 +130,6 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
 import { VueCropper } from 'vue-cropper'
-import 'vue-cropper/dist/style.css'
 
 const list = ref([])
 const loading = ref(false)
@@ -141,7 +137,6 @@ const dialogVisible = ref(false)
 const form = ref({})
 const saving = ref(false)
 
-// 图片裁剪相关
 const cropperVisible = ref(false)
 const cropperImg = ref('')
 const cropperRef = ref(null)
@@ -199,7 +194,6 @@ async function toggle(row) {
   load()
 }
 
-// 图片上传相关
 function beforeUpload(file) {
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -207,12 +201,10 @@ function beforeUpload(file) {
     cropperVisible.value = true
   }
   reader.readAsDataURL(file)
-  return false // 阻止默认上传
+  return false
 }
 
-function onCropperReady() {
-  // 裁剪器准备就绪
-}
+function onCropperReady() {}
 
 function rotateCropper() {
   if (cropperRef.value) {
@@ -225,7 +217,6 @@ async function confirmCrop() {
 
   uploading.value = true
   try {
-    // 获取裁剪后的 canvas
     const cropper = cropperRef.value
     const canvas = cropper.getCroppedCanvas({
       width: 400,
@@ -238,10 +229,8 @@ async function confirmCrop() {
       throw new Error('获取裁剪画布失败')
     }
 
-    // 转换为 blob
     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9))
 
-    // 上传到服务器
     const formData = new FormData()
     formData.append('file', blob, 'banner.jpg')
 
@@ -312,4 +301,3 @@ onMounted(load)
   border-radius: 8px;
 }
 </style>
-</template>
