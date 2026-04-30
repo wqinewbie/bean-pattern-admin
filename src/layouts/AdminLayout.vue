@@ -31,6 +31,7 @@
           <el-menu-item index="/withdraw"><el-icon><Wallet/></el-icon>提现管理</el-menu-item>
         </el-menu-item-group>
         <el-menu-item-group title="系统">
+          <el-menu-item index="/watermark"><el-icon><Brush/></el-icon>水印配置</el-menu-item>
           <el-menu-item index="/admins"><el-icon><Lock/></el-icon>管理员</el-menu-item>
         </el-menu-item-group>
       </el-menu>
