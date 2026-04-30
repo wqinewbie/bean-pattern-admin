@@ -9,49 +9,108 @@
       >
         <template #default>
           <p>水印将应用于生成图纸时的色号图预览。配置后小程序端会根据此配置自动渲染水印。</p>
-          <p>支持三种位置：右下角、左下角、平铺显示。</p>
+          <p><strong>小程序名称</strong>将显示在色号图顶部，所有用户统一。</p>
+          <p><strong>默认水印文字</strong>用于普通用户，VIP用户可在小程序端自定义文字。</p>
+          <p><strong>水印样式</strong>（颜色、角度、密集度）所有用户统一，VIP用户也使用此样式。</p>
         </template>
       </el-alert>
 
-      <el-form :model="form" label-width="100px" style="max-width: 600px">
-        <el-form-item label="启用水印">
-          <el-switch
-            v-model="form.enabled"
-            :active-value="1"
-            :inactive-value="0"
-            @change="handleEnabledChange"
+      <el-form :model="form" label-width="120px" style="max-width: 700px">
+        <!-- 小程序名称 -->
+        <el-form-item label="小程序名称">
+          <el-input 
+            v-model="form.appName" 
+            placeholder="请输入小程序名称"
+            maxlength="20"
+            show-word-limit
           />
-          <span style="margin-left: 12px; color: #909399">
-            {{ form.enabled ? '已启用' : '已禁用' }}
-          </span>
+          <div style="margin-top: 8px; color: #909399; font-size: 12px">
+            显示在色号图顶部，所有用户统一
+          </div>
         </el-form-item>
 
-        <el-form-item label="水印文字">
-          <el-input v-model="form.text" placeholder="请输入水印文字" />
+        <el-divider />
+
+        <!-- 默认水印文字 -->
+        <el-form-item label="默认水印文字">
+          <el-input 
+            v-model="form.defaultText" 
+            placeholder="请输入默认水印文字"
+            maxlength="30"
+            show-word-limit
+          />
+          <div style="margin-top: 8px; color: #909399; font-size: 12px">
+            普通用户使用此水印，VIP用户可在小程序端自定义
+          </div>
         </el-form-item>
 
+        <el-divider>
+          <span style="color: #909399; font-size: 14px">水印样式（所有用户统一）</span>
+        </el-divider>
+
+        <!-- 字体大小 -->
         <el-form-item label="字体大小">
           <el-input-number v-model="form.fontSize" :min="12" :max="72" />
           <span style="margin-left: 12px; color: #909399">px</span>
         </el-form-item>
 
-        <el-form-item label="水印颜色">
-          <el-color-picker v-model="form.color" />
+        <!-- 颜色 -->
+        <el-form-item label="颜色">
           <el-input
             v-model="form.color"
-            placeholder="rgba(128,128,128,0.5)"
-            style="width: 180px; margin-left: 12px"
+            placeholder="rgba(100,100,100,0.25)"
+            style="width: 250px"
           />
+          <div style="margin-top: 8px; color: #909399; font-size: 12px">
+            建议使用 rgba 格式，支持透明度
+          </div>
         </el-form-item>
 
-        <el-form-item label="位置">
-          <el-radio-group v-model="form.position">
-            <el-radio label="右下">右下角</el-radio>
-            <el-radio label="左下">左下角</el-radio>
-            <el-radio label="平铺">平铺</el-radio>
-          </el-radio-group>
+        <!-- 倾斜角度 -->
+        <el-form-item label="倾斜角度">
+          <el-slider
+            v-model="form.angle"
+            :min="-45"
+            :max="45"
+            :step="5"
+            :format-tooltip="val => val + '°'"
+            style="width: 300px"
+          />
+          <span style="margin-left: 12px; color: #909399">
+            {{ form.angle }}°
+          </span>
         </el-form-item>
 
+        <!-- 密集度 -->
+        <el-form-item label="水平间距">
+          <el-slider
+            v-model="form.spacingXRatio"
+            :min="0.1"
+            :max="0.5"
+            :step="0.01"
+            :format-tooltip="val => (val * 100).toFixed(0) + '%'"
+            style="width: 300px"
+          />
+          <span style="margin-left: 12px; color: #909399">
+            {{ (form.spacingXRatio * 100).toFixed(0) }}%（画布宽度）
+          </span>
+        </el-form-item>
+
+        <el-form-item label="垂直间距">
+          <el-slider
+            v-model="form.spacingYRatio"
+            :min="0.1"
+            :max="0.5"
+            :step="0.01"
+            :format-tooltip="val => (val * 100).toFixed(0) + '%'"
+            style="width: 300px"
+          />
+          <span style="margin-left: 12px; color: #909399">
+            {{ (form.spacingYRatio * 100).toFixed(0) }}%（画布高度）
+          </span>
+        </el-form-item>
+
+        <!-- 透明度 -->
         <el-form-item label="透明度">
           <el-slider
             v-model="form.opacity"
@@ -66,11 +125,6 @@
           </span>
         </el-form-item>
 
-        <el-form-item label="边距">
-          <el-input-number v-model="form.margin" :min="0" :max="100" />
-          <span style="margin-left: 12px; color: #909399">px</span>
-        </el-form-item>
-
         <el-form-item>
           <el-button type="primary" @click="save" :loading="saving">保存配置</el-button>
           <el-button @click="load">重置</el-button>
@@ -83,8 +137,8 @@
         <h4 style="margin-bottom: 12px; color: #303133">预览效果</h4>
         <div
           style="
-            width: 300px;
-            height: 200px;
+            width: 400px;
+            height: 300px;
             background: #f5f5f5;
             border: 1px solid #dcdfe6;
             border-radius: 8px;
@@ -92,7 +146,7 @@
             overflow: hidden;
           "
         >
-          <canvas ref="previewCanvas" width="300" height="200"></canvas>
+          <canvas ref="previewCanvas" width="400" height="300"></canvas>
         </div>
       </div>
     </el-card>
@@ -105,13 +159,14 @@ import { ElMessage } from 'element-plus'
 import request from '../utils/request'
 
 const form = ref({
-  enabled: 1,
-  text: '拼豆小程序',
+  appName: '拼豆魔法屋',
+  defaultText: '拼豆魔法屋出品',
   fontSize: 24,
-  color: 'rgba(128,128,128,0.5)',
-  position: '右下',
-  opacity: 0.5,
-  margin: 20
+  color: 'rgba(100,100,100,0.25)',
+  angle: -30,
+  spacingXRatio: 0.22,
+  spacingYRatio: 0.18,
+  opacity: 0.25
 })
 
 const saving = ref(false)
@@ -122,13 +177,14 @@ async function load() {
     const res = await request.get('/watermark/config')
     if (res) {
       form.value = {
-        enabled: res.enabled ?? 1,
-        text: res.text ?? '拼豆小程序',
+        appName: res.appName ?? '拼豆魔法屋',
+        defaultText: res.defaultText ?? '拼豆魔法屋出品',
         fontSize: res.fontSize ?? 24,
-        color: res.color ?? 'rgba(128,128,128,0.5)',
-        position: res.position ?? '右下',
-        opacity: res.opacity ?? 0.5,
-        margin: res.margin ?? 20
+        color: res.color ?? 'rgba(100,100,100,0.25)',
+        angle: res.angle ?? -30,
+        spacingXRatio: res.spacingXRatio ?? 0.22,
+        spacingYRatio: res.spacingYRatio ?? 0.18,
+        opacity: res.opacity ?? 0.25
       }
     }
   } catch (e) {
@@ -141,13 +197,14 @@ async function save() {
   saving.value = true
   try {
     await request.post('/watermark/config', {
-      enabled: form.value.enabled,
-      text: form.value.text,
+      appName: form.value.appName,
+      defaultText: form.value.defaultText,
       fontSize: form.value.fontSize,
       color: form.value.color,
-      position: form.value.position,
-      opacity: form.value.opacity,
-      margin: form.value.margin
+      angle: form.value.angle,
+      spacingXRatio: form.value.spacingXRatio,
+      spacingYRatio: form.value.spacingYRatio,
+      opacity: form.value.opacity
     })
     ElMessage.success('保存成功')
   } catch (e) {
@@ -157,13 +214,7 @@ async function save() {
   }
 }
 
-function handleEnabledChange(val) {
-  form.value.enabled = val
-  nextTick(() => drawPreview())
-}
-
 function parseColor(colorStr) {
-  // 解析 rgba(r,g,b,a) 格式
   const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
   if (match) {
     return {
@@ -173,7 +224,6 @@ function parseColor(colorStr) {
       a: match[4] ? parseFloat(match[4]) : 1
     }
   }
-  // 解析 hex 格式
   const hex = colorStr.replace('#', '')
   return {
     r: parseInt(hex.substring(0, 2), 16),
@@ -194,61 +244,47 @@ function drawPreview() {
   // 清空画布
   ctx.clearRect(0, 0, width, height)
 
-  // 模拟色号图背景（棋盘格）
-  const cellSize = 10
-  for (let y = 0; y < height; y += cellSize) {
+  // 绘制小程序名称（顶部）
+  if (form.value.appName) {
+    ctx.fillStyle = '#5D4037'
+    ctx.font = 'bold 16px sans-serif'
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'top'
+    ctx.fillText(form.value.appName, 15, 15)
+  }
+
+  // 模拟色号图背景（从顶部留出空间）
+  const topOffset = 45
+  const cellSize = 12
+  for (let y = topOffset; y < height; y += cellSize) {
     for (let x = 0; x < width; x += cellSize) {
-      ctx.fillStyle = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0 ? '#fff' : '#eee'
+      ctx.fillStyle = (Math.floor(x / cellSize) + Math.floor((y - topOffset) / cellSize)) % 2 === 0 ? '#fff' : '#eee'
       ctx.fillRect(x, y, cellSize, cellSize)
     }
   }
 
-  if (!form.value.enabled) {
-    ctx.fillStyle = '#666'
-    ctx.font = '14px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('水印已禁用', width / 2, height / 2)
-    return
-  }
-
+  // 绘制水印
   const color = parseColor(form.value.color)
-  const fontSize = Math.round(form.value.fontSize * 0.6) // 预览缩放
+  const fontSize = Math.round(form.value.fontSize * 0.5) // 预览缩放
+  const text = form.value.defaultText || ''
+  const angle = form.value.angle || -30
+  const spacingX = Math.floor(width * form.value.spacingXRatio)
+  const spacingY = Math.floor((height - topOffset) * form.value.spacingYRatio)
+
   ctx.font = `${fontSize}px sans-serif`
+  ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},${color.a * form.value.opacity})`
+  ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
-  const text = form.value.text || ''
-  const metrics = ctx.measureText(text)
-  const textWidth = metrics.width
-  const textHeight = fontSize
+  const angleRad = (angle * Math.PI) / 180
 
-  if (form.value.position === '平铺') {
-    // 平铺效果
-    const spacing = 100
-    ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},${color.a * form.value.opacity})`
-    ctx.save()
-    ctx.translate(0, 0)
-    for (let y = 0; y < height + spacing; y += spacing) {
-      for (let x = (y / spacing) % 2 === 0 ? 0 : -spacing / 2; x < width + spacing; x += spacing) {
-        ctx.save()
-        ctx.translate(x, y)
-        ctx.rotate(-Math.PI / 6)
-        ctx.fillText(text, 0, 0)
-        ctx.restore()
-      }
-    }
-    ctx.restore()
-  } else {
-    // 单个水印
-    ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},${color.a * form.value.opacity})`
-    const margin = form.value.margin * 0.5
-
-    if (form.value.position === '右下') {
-      ctx.textAlign = 'right'
-      ctx.fillText(text, width - margin, height - margin)
-    } else {
-      ctx.textAlign = 'left'
-      ctx.fillText(text, margin, height - margin)
+  for (let y = topOffset; y < height + spacingY; y += spacingY) {
+    for (let x = -spacingX; x < width + spacingX; x += spacingX) {
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(angleRad)
+      ctx.fillText(text, 0, 0)
+      ctx.restore()
     }
   }
 }
