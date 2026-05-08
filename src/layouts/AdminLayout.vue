@@ -27,7 +27,10 @@
         </el-menu-item-group>
         <el-menu-item-group title="运营">
           <el-menu-item index="/orders"><el-icon><CreditCard/></el-icon>订单管理</el-menu-item>
-          <el-menu-item index="/vip"><el-icon><Star/></el-icon>VIP套餐</el-menu-item>
+          <el-menu-item index="/vip"><el-icon><Star/></el-icon>VIP套餐（旧）</el-menu-item>
+          <el-menu-item index="/vip-packages"><el-icon><Crown/></el-icon>会员套餐配置</el-menu-item>
+          <el-menu-item index="/card-packages"><el-icon><Tickets/></el-icon>次卡套餐配置</el-menu-item>
+          <el-menu-item index="/privileges"><el-icon><Setting/></el-icon>权益配置</el-menu-item>
           <el-menu-item index="/withdraw"><el-icon><Wallet/></el-icon>提现管理</el-menu-item>
         </el-menu-item-group>
         <el-menu-item-group title="系统">
