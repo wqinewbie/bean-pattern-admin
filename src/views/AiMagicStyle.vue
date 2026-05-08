@@ -1,11 +1,14 @@
 <template>
-  <div class="magic-style-page">
-    <div class="page-header">
-      <h2>AI魔法风格管理</h2>
-      <el-button type="primary" @click="handleAdd">添加风格</el-button>
-    </div>
+  <div>
+    <el-card shadow="never" style="margin-bottom: 16px">
+      <el-button type="primary" @click="handleAdd">
+        <el-icon><Plus /></el-icon>
+        添加风格
+      </el-button>
+    </el-card>
 
-    <el-table :data="styles" v-loading="tableLoading" border style="width: 100%">
+    <el-card shadow="never">
+      <el-table :data="styles" v-loading="tableLoading" stripe>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" label="风格名称" width="120" />
       <el-table-column prop="icon" label="图标" width="80" align="center">
@@ -31,6 +34,7 @@
         </template>
       </el-table-column>
     </el-table>
+    </el-card>
 
     <!-- 编辑对话框 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑风格' : '添加风格'" width="600px">
@@ -216,18 +220,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.magic-style-page {
-  padding: 20px;
-}
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.page-header h2 {
-  margin: 0;
-}
 .icon-uploader {
   width: 100px;
   height: 100px;

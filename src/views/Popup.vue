@@ -1,11 +1,14 @@
 <template>
-  <div class="popup-page">
-    <div class="page-header">
-      <h2>弹窗管理</h2>
-      <el-button type="primary" @click="handleAdd">添加弹窗</el-button>
-    </div>
+  <div>
+    <el-card shadow="never" style="margin-bottom: 16px">
+      <el-button type="primary" @click="handleAdd">
+        <el-icon><Plus /></el-icon>
+        添加弹窗
+      </el-button>
+    </el-card>
 
-    <el-table :data="popups" v-loading="tableLoading" border style="width: 100%">
+    <el-card shadow="never">
+      <el-table :data="popups" v-loading="tableLoading" stripe>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="key" label="标识" width="120" />
       <el-table-column prop="title" label="标题" min-width="150" />
@@ -34,6 +37,7 @@
         </template>
       </el-table-column>
     </el-table>
+    </el-card>
 
     <!-- 编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑弹窗' : '添加弹窗'" width="600px">
@@ -84,6 +88,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 
 const popups = ref([])
@@ -177,16 +182,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.popup-page {
-  padding: 20px;
-}
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.page-header h2 {
-  margin: 0;
-}
 </style>
