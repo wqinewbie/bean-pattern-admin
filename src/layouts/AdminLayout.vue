@@ -32,6 +32,7 @@
         </el-menu-item-group>
         <el-menu-item-group title="系统">
           <el-menu-item index="/watermark"><el-icon><Brush/></el-icon>水印配置</el-menu-item>
+          <el-menu-item index="/ai-magic-style"><el-icon><MagicStick/></el-icon>AI魔法风格</el-menu-item>
           <el-menu-item index="/admins"><el-icon><Lock/></el-icon>管理员</el-menu-item>
         </el-menu-item-group>
       </el-menu>
