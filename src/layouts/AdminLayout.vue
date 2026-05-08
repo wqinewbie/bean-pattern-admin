@@ -17,21 +17,17 @@
         </el-menu-item-group>
         <el-menu-item-group title="内容管理">
           <el-menu-item index="/users"><el-icon><User/></el-icon>用户管理</el-menu-item>
-          <el-menu-item index="/patterns"><el-icon><Picture/></el-icon>创作者图纸</el-menu-item>
           <el-menu-item index="/user-patterns"><el-icon><Tickets/></el-icon>用户图纸</el-menu-item>
           <el-menu-item index="/bead-library"><el-icon><Grid/></el-icon>品牌色盘色码</el-menu-item>
           <el-menu-item index="/banners"><el-icon><FocusRight/></el-icon>Banner管理</el-menu-item>
           <el-menu-item index="/popup"><el-icon><Bell/></el-icon>弹窗管理</el-menu-item>
           <el-menu-item index="/tutorials"><el-icon><MagicStick/></el-icon>魔法小课堂</el-menu-item>
-          <el-menu-item index="/feedback"><el-icon><ChatDotRound/></el-icon>反馈管理</el-menu-item>
         </el-menu-item-group>
         <el-menu-item-group title="运营">
           <el-menu-item index="/orders"><el-icon><CreditCard/></el-icon>订单管理</el-menu-item>
-          <el-menu-item index="/vip"><el-icon><Star/></el-icon>VIP套餐（旧）</el-menu-item>
           <el-menu-item index="/vip-packages"><el-icon><Crown/></el-icon>会员套餐配置</el-menu-item>
           <el-menu-item index="/card-packages"><el-icon><Tickets/></el-icon>次卡套餐配置</el-menu-item>
           <el-menu-item index="/privileges"><el-icon><Setting/></el-icon>权益配置</el-menu-item>
-          <el-menu-item index="/withdraw"><el-icon><Wallet/></el-icon>提现管理</el-menu-item>
         </el-menu-item-group>
         <el-menu-item-group title="系统">
           <el-menu-item index="/watermark"><el-icon><Brush/></el-icon>水印配置</el-menu-item>
