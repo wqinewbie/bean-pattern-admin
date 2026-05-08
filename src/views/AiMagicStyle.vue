@@ -16,7 +16,6 @@
           <el-image v-if="row.icon" :src="row.icon" style="width: 40px; height: 40px" fit="cover" />
         </template>
       </el-table-column>
-      <el-table-column prop="category" label="分类" width="100" />
       <el-table-column prop="tag" label="标签" width="120" />
       <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
       <el-table-column prop="sortOrder" label="排序" width="80" />
@@ -58,13 +57,6 @@
           <div style="color: #999; font-size: 12px; margin-top: 4px;">
             建议尺寸：100x100px，支持 jpg/png/gif，大小不超过2MB
           </div>
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="form.category" placeholder="请选择">
-            <el-option label="题材" value="题材" />
-            <el-option label="用途" value="用途" />
-            <el-option label="高阶" value="高阶" />
-          </el-select>
         </el-form-item>
         <el-form-item label="标签">
           <el-input v-model="form.tag" placeholder="如：适用人物" />
@@ -117,7 +109,6 @@ const form = ref({
   id: null,
   name: '',
   icon: '',
-  category: '题材',
   tag: '',
   description: '',
   promptTemplate: '',
@@ -142,7 +133,6 @@ const handleAdd = () => {
     id: null,
     name: '',
     icon: '',
-    category: '题材',
     tag: '',
     description: '',
     promptTemplate: '',
@@ -161,10 +151,6 @@ const handleEdit = (row) => {
 const handleSave = async () => {
   if (!form.value.name) {
     ElMessage.warning('请输入风格名称')
-    return
-  }
-  if (!form.value.category) {
-    ElMessage.warning('请选择分类')
     return
   }
 
