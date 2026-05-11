@@ -11,6 +11,31 @@
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column prop="title" label="标题" min-width="160" />
+        <el-table-column label="动作" width="120">
+          <template #default="{ row }">
+            <el-tag size="small" :type="getActionTypeTagType(row.actionType)">{{ getActionTypeLabel(row.actionType) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="领取限制" width="120">
+          <template #default="{ row }">
+            <el-tag v-if="row.actionType === 'CLAIM_GIFT'" size="small" :type="getClaimLimitTagType(row.actionConfig)">
+              {{ getClaimLimitLabel(row.actionConfig) }}
+            </el-tag>
+            <span v-else style="color: #999">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="礼品包编码" min-width="150">
+          <template #default="{ row }">
+            <span v-if="row.actionType === 'CLAIM_GIFT'">{{ getGiftPackageCode(row.actionConfig) }}</span>
+            <span v-else style="color: #999">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="活动标识" min-width="160">
+          <template #default="{ row }">
+            <span v-if="row.actionType === 'CLAIM_GIFT'">{{ getBannerCode(row) }}</span>
+            <span v-else style="color: #999">-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="背景色" width="90">
           <template #default="{ row }">
             <span
@@ -98,20 +123,25 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="礼品配置" v-if="form.actionType === 'CLAIM_GIFT'">
-          <el-input
-            v-model="form.actionConfig"
-            type="textarea"
-            :rows="6"
-            placeholder='{"gifts":[{"type":"AI_QUOTA","value":10},{"type":"VIP_DAYS","value":7}],"limit":"DAILY","banner_code":"daily_gift"}'
-          />
-          <div style="color: #909399; font-size: 12px; margin-top: 8px;">
-            <p>配置说明：</p>
-            <p>• gifts: 礼品列表，type可选：AI_QUOTA（AI次数）、VIP_DAYS（VIP天数）</p>
-            <p>• limit: 领取限制，ONCE（仅一次）、DAILY（每日一次）</p>
-            <p>• banner_code: Banner唯一标识，用于防重复领取</p>
-          </div>
+        <el-form-item label="领取限制" v-if="form.actionType === 'CLAIM_GIFT'">
+          <el-select v-model="form.claimLimit" style="width: 100%">
+            <el-option label="仅一次" value="ONCE" />
+            <el-option label="每天一次" value="DAILY" />
+          </el-select>
         </el-form-item>
+
+        <el-form-item label="活动标识" v-if="form.actionType === 'CLAIM_GIFT'">
+          <el-input v-model="form.bannerCode" placeholder="例如：daily_gift；用于防重复领取，建议保持稳定不随意修改" />
+        </el-form-item>
+
+        <el-alert
+          v-if="form.actionType === 'CLAIM_GIFT'"
+          type="info"
+          :closable="false"
+          show-icon
+          title="系统会自动生成领取配置，无需手写 JSON"
+          style="margin-bottom: 18px"
+        />
 
         <el-form-item label="外部链接" v-if="form.actionType === 'EXTERNAL'">
           <el-input v-model="form.linkValue" placeholder="https://example.com" />
@@ -201,6 +231,57 @@ const pageOptions = [
   { label: 'VIP', value: '/pages/vip/vip' }
 ]
 
+function parseActionConfig(actionConfig) {
+  if (!actionConfig) return {}
+  try {
+    return JSON.parse(actionConfig)
+  } catch {
+    return {}
+  }
+}
+
+function getActionTypeLabel(actionType) {
+  const map = {
+    NAVIGATE: '小程序内跳转',
+    ACTIVITY: '活动详情页',
+    CLAIM_GIFT: '领取礼品包',
+    EXTERNAL: '外部链接',
+    NONE: '无动作'
+  }
+  return map[actionType] || actionType || '未设置'
+}
+
+function getActionTypeTagType(actionType) {
+  const map = {
+    NAVIGATE: '',
+    ACTIVITY: 'warning',
+    CLAIM_GIFT: 'success',
+    EXTERNAL: 'info',
+    NONE: 'info'
+  }
+  return map[actionType] || 'info'
+}
+
+function getClaimLimitLabel(actionConfig) {
+  const parsedConfig = parseActionConfig(actionConfig)
+  return parsedConfig.limit === 'DAILY' ? '每天一次' : '仅一次'
+}
+
+function getClaimLimitTagType(actionConfig) {
+  const parsedConfig = parseActionConfig(actionConfig)
+  return parsedConfig.limit === 'DAILY' ? 'success' : 'info'
+}
+
+function getGiftPackageCode(actionConfig) {
+  const parsedConfig = parseActionConfig(actionConfig)
+  return parsedConfig.giftPackageCode || parsedConfig.packageCode || '-'
+}
+
+function getBannerCode(row) {
+  const parsedConfig = parseActionConfig(row.actionConfig)
+  return parsedConfig.banner_code || parsedConfig.bannerCode || `banner_${row.id}`
+}
+
 async function load() {
   loading.value = true
   try {
@@ -212,14 +293,14 @@ async function load() {
 }
 
 function openModal(row) {
-  let parsedConfig = {}
-  if (row?.actionConfig) {
-    try {
-      parsedConfig = JSON.parse(row.actionConfig)
-    } catch {}
-  }
+  const parsedConfig = parseActionConfig(row?.actionConfig)
   form.value = row
-    ? { ...row, giftPackageCode: parsedConfig.giftPackageCode || parsedConfig.packageCode || '' }
+    ? {
+        ...row,
+        giftPackageCode: parsedConfig.giftPackageCode || parsedConfig.packageCode || '',
+        claimLimit: parsedConfig.limit || 'ONCE',
+        bannerCode: parsedConfig.banner_code || parsedConfig.bannerCode || `banner_${row.id}`
+      }
     : {
         title: '',
         subTitle: '',
@@ -231,7 +312,9 @@ function openModal(row) {
         linkValue: '',
         actionType: 'NAVIGATE',
         actionConfig: '',
-        giftPackageCode: ''
+        giftPackageCode: '',
+        claimLimit: 'ONCE',
+        bannerCode: ''
       }
   dialogVisible.value = true
 }
@@ -240,18 +323,25 @@ async function save() {
   saving.value = true
   try {
     const payload = { ...form.value }
-    if (payload.actionType === 'CLAIM_GIFT' && payload.giftPackageCode) {
-      let parsed = {}
-      try {
-        parsed = payload.actionConfig ? JSON.parse(payload.actionConfig) : {}
-      } catch {}
+    if (payload.actionType === 'CLAIM_GIFT') {
+      if (!payload.giftPackageCode) {
+        ElMessage.error('请选择礼品包')
+        return
+      }
+      const normalizedBannerCode = (payload.bannerCode || payload.giftPackageCode || '').trim()
+      if (!normalizedBannerCode) {
+        ElMessage.error('请填写活动标识')
+        return
+      }
       payload.actionConfig = JSON.stringify({
-        ...parsed,
         giftPackageCode: payload.giftPackageCode,
-        limit: parsed.limit || 'DAILY',
-        banner_code: parsed.banner_code || payload.giftPackageCode
+        limit: payload.claimLimit || 'ONCE',
+        banner_code: normalizedBannerCode
       })
     }
+    delete payload.giftPackageCode
+    delete payload.claimLimit
+    delete payload.bannerCode
     if (payload.id) {
       await request.put(`/admin/banners/${payload.id}`, payload)
     } else {

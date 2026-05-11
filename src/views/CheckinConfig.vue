@@ -1,23 +1,47 @@
 <template>
   <div>
     <el-card shadow="never" style="margin-bottom:16px">
-      <el-descriptions title="签到配置" :column="2" border>
-        <el-descriptions-item label="连续签到天数要求">
-          <el-input-number v-model="config.continuousDaysRequired" :min="1" :max="30" size="small" />
-        </el-descriptions-item>
-        <el-descriptions-item label="奖励类型">
-          <el-select v-model="config.rewardType" size="small">
+      <template #header>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:16px;font-weight:700;">签到配置</div>
+            <div style="font-size:12px;color:#909399;margin-top:4px;">当前小程序签到区域已简化为状态展示，不展示日历；这里只配置签到规则本身。</div>
+          </div>
+          <el-tag type="warning">前端展示：连续天数 / 剩余天数 / 累计签到</el-tag>
+        </div>
+      </template>
+
+      <el-form :model="config" label-width="150px" style="max-width:720px;">
+        <el-form-item label="签到功能状态">
+          <el-switch v-model="config.isActive" active-text="启用" inactive-text="禁用" />
+          <div class="form-help">关闭后，小程序签到按钮仍会显示，但用户签到时会提示“签到暂未开启”。</div>
+        </el-form-item>
+
+        <el-form-item label="连续签到天数">
+          <el-input-number v-model="config.continuousDaysRequired" :min="1" :max="30" />
+          <div class="form-help">达到该天数后，用户可点击领取奖励。</div>
+        </el-form-item>
+
+        <el-form-item label="奖励类型">
+          <el-select v-model="config.rewardType" style="width:220px">
             <el-option label="AI次数" value="AI_COUNT" />
             <el-option label="会员天数" value="VIP_DAYS" />
           </el-select>
-        </el-descriptions-item>
-        <el-descriptions-item label="奖励数量">
-          <el-input-number v-model="config.rewardValue" :min="1" :max="100" size="small" />
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-switch v-model="config.isActive" active-text="启用" inactive-text="禁用" />
-        </el-descriptions-item>
-      </el-descriptions>
+        </el-form-item>
+
+        <el-form-item :label="config.rewardType === 'VIP_DAYS' ? '奖励天数' : '奖励数量'">
+          <el-input-number v-model="config.rewardValue" :min="1" :max="100" />
+          <div class="form-help">当前前端会在按钮上展示该数值，例如“领取奖励 +1次AI”。</div>
+        </el-form-item>
+      </el-form>
+
+      <div class="preview-box">
+        <div class="preview-title">效果说明</div>
+        <div class="preview-line">1. 用户在任务中心看到：已连续签到 X 天、还差 Y 天、累计签到 Z 天</div>
+        <div class="preview-line">2. 满足连续签到 {{ config.continuousDaysRequired || 0 }} 天后，可领取 1 次奖励</div>
+        <div class="preview-line">3. 当前奖励：{{ getRewardLabel(config.rewardType) }} × {{ config.rewardValue || 0 }}</div>
+      </div>
+
       <div style="margin-top: 16px; text-align: right;">
         <el-button type="primary" @click="saveConfig" :loading="saving">保存配置</el-button>
       </div>
@@ -27,15 +51,7 @@
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span>签到统计</span>
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            size="small"
-            @change="loadStatistics"
-          />
+          <el-tag type="info">统计与记录列表待接入真实数据</el-tag>
         </div>
       </template>
 
@@ -56,41 +72,13 @@
           </el-statistic>
         </el-col>
         <el-col :span="6">
-          <el-statistic title="累计发放奖励" :value="statistics.totalRewardValue || 0">
-            <template #suffix>次AI</template>
+          <el-statistic :title="config.rewardType === 'VIP_DAYS' ? '累计发放会员天数' : '累计发放AI次数'" :value="statistics.totalRewardValue || 0">
+            <template #suffix>{{ config.rewardType === 'VIP_DAYS' ? '天' : '次' }}</template>
           </el-statistic>
         </el-col>
       </el-row>
 
-      <el-table :data="recentCheckins" v-loading="loading" stripe>
-        <el-table-column prop="userId" label="用户ID" width="100" />
-        <el-table-column prop="nickName" label="用户昵称" min-width="120" />
-        <el-table-column prop="checkinDate" label="签到日期" width="120" />
-        <el-table-column prop="continuousDays" label="连续天数" width="100" align="center">
-          <template #default="{row}">
-            <el-tag size="small" type="warning">{{ row.continuousDays }}天</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="totalDays" label="累计天数" width="100" align="center" />
-        <el-table-column prop="canClaim" label="可领取" width="100" align="center">
-          <template #default="{row}">
-            <el-tag size="small" :type="row.canClaim ? 'success' : 'info'">
-              {{ row.canClaim ? '是' : '否' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt" label="签到时间" width="180" />
-      </el-table>
-
-      <el-pagination
-        v-if="total > 0"
-        style="margin-top: 16px; text-align: right;"
-        :current-page="page"
-        :page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        @current-change="handlePageChange"
-      />
+      <el-empty description="签到记录列表待接入" />
     </el-card>
   </div>
 </template>
@@ -108,19 +96,23 @@ const config = ref({
 })
 
 const saving = ref(false)
-const loading = ref(false)
-const dateRange = ref([])
 const statistics = ref({})
-const recentCheckins = ref([])
-const page = ref(1)
-const pageSize = ref(20)
-const total = ref(0)
+
+function getRewardLabel(type) {
+  return type === 'VIP_DAYS' ? '会员天数' : 'AI次数'
+}
 
 async function loadConfig() {
   try {
     const data = await request.get('/admin/checkin/config')
     if (data) {
-      config.value = data
+      config.value = {
+        continuousDaysRequired: data.continuousDaysRequired || 3,
+        rewardType: data.rewardType || 'AI_COUNT',
+        rewardValue: data.rewardValue || 1,
+        isActive: typeof data.isActive === 'boolean' ? data.isActive : true,
+        id: data.id
+      }
     }
   } catch (e) {
     console.error('加载配置失败', e)
@@ -130,7 +122,13 @@ async function loadConfig() {
 async function saveConfig() {
   saving.value = true
   try {
-    await request.post('/admin/checkin/config', config.value)
+    const data = await request.post('/admin/checkin/config', config.value)
+    if (data) {
+      config.value = {
+        ...config.value,
+        ...data
+      }
+    }
     ElMessage.success('保存成功')
   } catch (e) {
     ElMessage.error('保存失败：' + (e.message || '未知错误'))
@@ -141,12 +139,7 @@ async function saveConfig() {
 
 async function loadStatistics() {
   try {
-    const params = {}
-    if (dateRange.value && dateRange.value.length === 2) {
-      params.startDate = dateRange.value[0]
-      params.endDate = dateRange.value[1]
-    }
-    const data = await request.get('/admin/checkin/statistics', { params })
+    const data = await request.get('/admin/checkin/statistics')
     if (data) {
       statistics.value = data
     }
@@ -155,39 +148,42 @@ async function loadStatistics() {
   }
 }
 
-async function loadRecentCheckins() {
-  loading.value = true
-  try {
-    const params = {
-      page: page.value,
-      pageSize: pageSize.value
-    }
-    const data = await request.get('/admin/checkin/recent', { params })
-    if (data) {
-      recentCheckins.value = data.list || []
-      total.value = data.total || 0
-    }
-  } catch (e) {
-    console.error('加载签到记录失败', e)
-  } finally {
-    loading.value = false
-  }
-}
-
-function handlePageChange(newPage) {
-  page.value = newPage
-  loadRecentCheckins()
-}
-
 onMounted(() => {
   loadConfig()
   loadStatistics()
-  loadRecentCheckins()
 })
 </script>
 
 <style scoped>
 .el-statistic {
   text-align: center;
+}
+
+.form-help {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.6;
+  margin-top: 6px;
+}
+
+.preview-box {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  background: #faf6ef;
+  border: 1px solid #f0e2c2;
+}
+
+.preview-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #8a5b20;
+}
+
+.preview-line {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #606266;
 }
 </style>
