@@ -107,7 +107,7 @@
           />
           <div style="color: #909399; font-size: 12px; margin-top: 8px;">
             <p>配置说明：</p>
-            <p>• gifts: 礼品列表，type可选：AI_QUOTA（AI次数）、VIP_DAYS（VIP天数）、MAGIC_COINS（魔法币）</p>
+            <p>• gifts: 礼品列表，type可选：AI_QUOTA（AI次数）、VIP_DAYS（VIP天数）</p>
             <p>• limit: 领取限制，ONCE（仅一次）、DAILY（每日一次）</p>
             <p>• banner_code: Banner唯一标识，用于防重复领取</p>
           </div>

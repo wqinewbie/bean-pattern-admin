@@ -24,6 +24,7 @@ const routes = [
       { path: 'vip', component: () => import('../views/VipPlans.vue'), meta: { title: 'VIP套餐（旧）' } },
       { path: 'vip-packages', component: () => import('../views/VipPackages.vue'), meta: { title: '会员套餐配置' } },
       { path: 'card-packages', component: () => import('../views/CardPackages.vue'), meta: { title: '次卡套餐配置' } },
+      { path: 'gift-types', component: () => import('../views/GiftTypes.vue'), meta: { title: '礼品类型管理' } },
       { path: 'gift-packages', component: () => import('../views/GiftPackages.vue'), meta: { title: '礼品包管理' } },
       { path: 'privileges', component: () => import('../views/Privileges.vue'), meta: { title: '权益配置' } },
       { path: 'task-center', component: () => import('../views/TaskCenter.vue'), meta: { title: '任务中心管理' } },

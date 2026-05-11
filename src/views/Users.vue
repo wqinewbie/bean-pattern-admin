@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div>
     <el-card shadow="never" style="margin-bottom:16px">
       <el-row :gutter="12">
@@ -45,7 +45,6 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="magicCoins" label="金币" width="80" />
         <el-table-column prop="aiQuota" label="AI次数" width="80" />
         <el-table-column label="VIP" width="90">
           <template #default="{row}">

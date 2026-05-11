@@ -27,6 +27,7 @@
           <el-menu-item index="/orders"><el-icon><CreditCard/></el-icon>订单管理</el-menu-item>
           <el-menu-item index="/vip-packages"><el-icon><Crown/></el-icon>会员套餐配置</el-menu-item>
           <el-menu-item index="/card-packages"><el-icon><Tickets/></el-icon>次卡套餐配置</el-menu-item>
+          <el-menu-item index="/gift-types"><el-icon><Tickets/></el-icon>礼品类型管理</el-menu-item>
           <el-menu-item index="/gift-packages"><el-icon><Tickets/></el-icon>礼品包管理</el-menu-item>
           <el-menu-item index="/privileges"><el-icon><Setting/></el-icon>权益配置</el-menu-item>
           <el-menu-item index="/task-center"><el-icon><Trophy/></el-icon>任务中心管理</el-menu-item>
