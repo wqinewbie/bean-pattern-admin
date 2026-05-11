@@ -29,6 +29,7 @@
           <el-menu-item index="/card-packages"><el-icon><Tickets/></el-icon>次卡套餐配置</el-menu-item>
           <el-menu-item index="/privileges"><el-icon><Setting/></el-icon>权益配置</el-menu-item>
           <el-menu-item index="/task-center"><el-icon><Trophy/></el-icon>任务中心管理</el-menu-item>
+          <el-menu-item index="/checkin-config"><el-icon><Calendar/></el-icon>签到配置</el-menu-item>
         </el-menu-item-group>
         <el-menu-item-group title="系统">
           <el-menu-item index="/watermark"><el-icon><Brush/></el-icon>水印配置</el-menu-item>

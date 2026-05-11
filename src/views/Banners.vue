@@ -72,7 +72,47 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="跳转类型">
+        <el-form-item label="动作类型">
+          <el-select v-model="form.actionType" style="width: 100%">
+            <el-option label="小程序内跳转" value="NAVIGATE" />
+            <el-option label="活动详情页" value="ACTIVITY" />
+            <el-option label="领取礼品包" value="CLAIM_GIFT" />
+            <el-option label="外部链接" value="EXTERNAL" />
+            <el-option label="无动作（兼容旧版）" value="NONE" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="跳转路径" v-if="form.actionType === 'NAVIGATE'">
+          <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
+            <el-option v-for="item in pageOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="活动编码" v-if="form.actionType === 'ACTIVITY'">
+          <el-input v-model="form.linkValue" placeholder="例如：new_user_gift" />
+        </el-form-item>
+
+        <el-form-item label="礼品配置" v-if="form.actionType === 'CLAIM_GIFT'">
+          <el-input
+            v-model="form.actionConfig"
+            type="textarea"
+            :rows="6"
+            placeholder='{"gifts":[{"type":"AI_QUOTA","value":10},{"type":"VIP_DAYS","value":7}],"limit":"DAILY","banner_code":"daily_gift"}'
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 8px;">
+            <p>配置说明：</p>
+            <p>• gifts: 礼品列表，type可选：AI_QUOTA（AI次数）、VIP_DAYS（VIP天数）、MAGIC_COINS（魔法币）</p>
+            <p>• limit: 领取限制，ONCE（仅一次）、DAILY（每日一次）</p>
+            <p>• banner_code: Banner唯一标识，用于防重复领取</p>
+          </div>
+        </el-form-item>
+
+        <el-form-item label="外部链接" v-if="form.actionType === 'EXTERNAL'">
+          <el-input v-model="form.linkValue" placeholder="https://example.com" />
+        </el-form-item>
+
+        <!-- 兼容旧版本字段 -->
+        <el-form-item label="跳转类型（旧）" v-if="!form.actionType || form.actionType === 'NONE'">
           <el-select v-model="form.linkType" style="width: 100%">
             <el-option label="NONE" value="NONE" />
             <el-option label="PAGE" value="PAGE" />
@@ -80,13 +120,13 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="跳转值" v-if="form.linkType === 'PAGE'">
+        <el-form-item label="跳转值（旧）" v-if="(!form.actionType || form.actionType === 'NONE') && form.linkType === 'PAGE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
             <el-option v-for="item in pageOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="跳转值" v-else>
+        <el-form-item label="跳转值（旧）" v-else-if="(!form.actionType || form.actionType === 'NONE') && form.linkType !== 'PAGE'">
           <el-input v-model="form.linkValue" />
         </el-form-item>
       </el-form>
@@ -166,7 +206,18 @@ async function load() {
 function openModal(row) {
   form.value = row
     ? { ...row }
-    : { title: '', subTitle: '', imageUrl: '', tagText: '', bgColor: '', sortOrder: 1, linkType: 'NONE', linkValue: '' }
+    : {
+        title: '',
+        subTitle: '',
+        imageUrl: '',
+        tagText: '',
+        bgColor: '',
+        sortOrder: 1,
+        linkType: 'NONE',
+        linkValue: '',
+        actionType: 'NAVIGATE',
+        actionConfig: ''
+      }
   dialogVisible.value = true
 }
 
