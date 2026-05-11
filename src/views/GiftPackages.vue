@@ -1,7 +1,10 @@
 <template>
   <div>
     <el-card shadow="never" style="margin-bottom: 16px">
-      <el-button type="primary" @click="openModal(null)">新增礼品包</el-button>
+      <div class="page-toolbar">
+        <div class="page-tip">组合多个奖励项形成礼包，可被 Banner、活动中心等运营入口引用。</div>
+        <el-button type="primary" @click="openModal(null)">新增礼品包</el-button>
+      </div>
     </el-card>
 
     <el-card shadow="never">
@@ -50,9 +53,10 @@
             </el-select>
             <el-input-number v-model="item.value" :min="0" :step="valueStep(item)" :precision="valuePrecision(item)" />
             <span class="value-tip">{{ valueTip(item) }}</span>
+            <span class="value-desc">{{ giftType(item.type).description || '' }}</span>
             <el-button type="danger" link @click="removeReward(idx)">删除</el-button>
           </div>
-          <el-button @click="addReward">添加礼品</el-button>
+          <el-button @click="addReward">添加奖励项</el-button>
         </div>
 
         <el-divider content-position="left">高级模式（可选）</el-divider>
@@ -139,7 +143,8 @@ function onTypeChange(item) {
 }
 
 function addReward() {
-  rewardItems.value.push({ type: giftTypes.value[0]?.code || '', value: 1 })
+  const defaultType = giftTypes.value.find(item => item.targetProductType === 'vip' && item.valueType === 'discount') || giftTypes.value[0]
+  rewardItems.value.push({ type: defaultType?.code || '', value: defaultType?.valueType === 'discount' ? 8.5 : 1 })
 }
 
 function removeReward(index) {
@@ -195,8 +200,11 @@ onMounted(load)
 </script>
 
 <style scoped>
+.page-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.page-tip { color:#909399; font-size:13px; }
 .reward-tags { display: flex; gap: 8px; flex-wrap: wrap; }
 .reward-editor { display: flex; flex-direction: column; gap: 12px; margin-left: 110px; margin-bottom: 18px; }
-.reward-row { display: flex; align-items: center; gap: 12px; }
+.reward-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .value-tip { color: #909399; font-size: 12px; min-width: 150px; }
+.value-desc { color: #606266; font-size: 12px; }
 </style>

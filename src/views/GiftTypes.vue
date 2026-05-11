@@ -1,7 +1,10 @@
 <template>
   <div>
     <el-card shadow="never" style="margin-bottom:16px">
-      <el-button type="primary" @click="openModal(null)">新增礼品类型</el-button>
+      <div class="page-toolbar">
+        <div class="page-tip">维护运营可发放的奖励类型，例如购会员卡优惠券、购次卡优惠券、会员体验卡等。</div>
+        <el-button type="primary" @click="openModal(null)">新增礼品类型</el-button>
+      </div>
     </el-card>
 
     <el-card shadow="never">
@@ -9,9 +12,13 @@
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column prop="code" label="类型编码" width="160" />
         <el-table-column prop="name" label="类型名称" width="180" />
-        <el-table-column prop="giftCategory" label="分类" width="120" />
-        <el-table-column prop="valueType" label="值类型" width="120" />
-        <el-table-column prop="targetProductType" label="适用商品" width="120" />
+        <el-table-column prop="giftCategory" label="业务分类" width="120" />
+        <el-table-column label="面值类型" width="120">
+          <template #default="{ row }">{{ formatValueType(row.valueType) }}</template>
+        </el-table-column>
+        <el-table-column label="适用商品" width="120">
+          <template #default="{ row }">{{ formatTargetProduct(row.targetProductType) }}</template>
+        </el-table-column>
         <el-table-column prop="description" label="描述" min-width="220" show-overflow-tooltip />
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
@@ -31,8 +38,8 @@
       <el-form :model="form" label-width="110px">
         <el-form-item label="类型编码"><el-input v-model="form.code" :disabled="!!form.id" /></el-form-item>
         <el-form-item label="类型名称"><el-input v-model="form.name" /></el-form-item>
-        <el-form-item label="分类"><el-input v-model="form.giftCategory" placeholder="如 COUPON / MEMBERSHIP / QUOTA" /></el-form-item>
-        <el-form-item label="值类型">
+        <el-form-item label="业务分类"><el-input v-model="form.giftCategory" placeholder="如 COUPON / MEMBERSHIP / QUOTA" /></el-form-item>
+        <el-form-item label="面值类型">
           <el-select v-model="form.valueType" style="width:100%">
             <el-option label="数值" value="number" />
             <el-option label="折扣" value="discount" />
@@ -79,9 +86,19 @@ async function load() {
 
 function openModal(row) {
   form.value = row ? { ...row } : {
-    code: '', name: '', giftCategory: 'COUPON', valueType: 'number', targetProductType: 'all', description: '', sortOrder: 0, status: 1
+    code: '', name: '', giftCategory: 'COUPON', valueType: 'discount', targetProductType: 'vip', description: '', sortOrder: 0, status: 1
   }
   dialogVisible.value = true
+}
+
+function formatValueType(type) {
+  const map = { number: '数值', discount: '折扣', days: '天数', times: '次数' }
+  return map[type] || type || '-'
+}
+
+function formatTargetProduct(type) {
+  const map = { all: '全部', vip: '会员卡', card: '次卡' }
+  return map[type] || type || '-'
 }
 
 async function save() {
@@ -104,3 +121,8 @@ async function toggle(row) {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.page-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.page-tip { color:#909399; font-size:13px; }
+</style>
