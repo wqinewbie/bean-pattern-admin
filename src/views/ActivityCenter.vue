@@ -140,6 +140,12 @@
           />
         </el-form-item>
 
+        <el-form-item label="礼品包" v-if="form.activityType === 'GIFT'">
+          <el-select v-model="form.giftPackageCode" clearable filterable placeholder="选择礼品包" style="width: 100%">
+            <el-option v-for="pkg in giftPackages" :key="pkg.packageCode" :label="pkg.name + '（' + pkg.packageCode + '）'" :value="pkg.packageCode" />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="礼品配置" v-if="form.activityType === 'GIFT'">
           <el-input v-model="form.giftItems" type="textarea" :rows="5" placeholder='JSON格式，例如：[{"gift_id": 1, "gift_type": "AI_QUOTA", "gift_value": 10}]' />
           <div style="font-size:12px;color:#999;margin-top:4px">
@@ -188,6 +194,7 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({})
 const banners = ref([])
+const giftPackages = ref([])
 const editorToolbar = ref(null)
 const editorContainer = ref(null)
 let editor = null
@@ -207,13 +214,21 @@ async function loadBanners() {
   try {
     const data = await request.get('/admin/banners')
     banners.value = data || []
+    giftPackages.value = await request.get('/admin/gift-packages?activeOnly=true') || []
   } catch (e) {
     console.error('加载Banner失败', e)
   }
 }
 
 function openModal(row) {
-  form.value = row ? { ...row } : {
+  let giftPackageCode = ''
+  if (row?.giftItems) {
+    try {
+      const parsed = JSON.parse(row.giftItems)
+      giftPackageCode = parsed.giftPackageCode || parsed.packageCode || ''
+    } catch {}
+  }
+  form.value = row ? { ...row, giftPackageCode } : {
     activityCode: '',
     title: '',
     description: '',
@@ -232,6 +247,7 @@ function openModal(row) {
     discountConfig: '',
     taskConfig: '',
     bannerId: null,
+    giftPackageCode: '',
     status: 1
   }
   dialogVisible.value = true
@@ -317,6 +333,9 @@ async function save() {
         ElMessage.error('礼品配置必须是有效的JSON格式')
         return
       }
+    }
+    if (form.value.activityType === 'GIFT' && form.value.giftPackageCode) {
+      form.value.giftItems = JSON.stringify({ giftPackageCode: form.value.giftPackageCode })
     }
     if (form.value.discountConfig && form.value.discountConfig.trim()) {
       try {

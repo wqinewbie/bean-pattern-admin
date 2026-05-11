@@ -92,6 +92,12 @@
           <el-input v-model="form.linkValue" placeholder="例如：new_user_gift" />
         </el-form-item>
 
+        <el-form-item label="礼品包" v-if="form.actionType === 'CLAIM_GIFT'">
+          <el-select v-model="form.giftPackageCode" clearable filterable placeholder="选择礼品包" style="width: 100%">
+            <el-option v-for="pkg in giftPackages" :key="pkg.packageCode" :label="pkg.name + '（' + pkg.packageCode + '）'" :value="pkg.packageCode" />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="礼品配置" v-if="form.actionType === 'CLAIM_GIFT'">
           <el-input
             v-model="form.actionConfig"
@@ -173,6 +179,7 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({})
 const saving = ref(false)
+const giftPackages = ref([])
 
 const cropperVisible = ref(false)
 const cropperImg = ref('')
@@ -198,14 +205,21 @@ async function load() {
   loading.value = true
   try {
     list.value = (await request.get('/admin/banners')) || []
+    giftPackages.value = (await request.get('/admin/gift-packages?activeOnly=true')) || []
   } finally {
     loading.value = false
   }
 }
 
 function openModal(row) {
+  let parsedConfig = {}
+  if (row?.actionConfig) {
+    try {
+      parsedConfig = JSON.parse(row.actionConfig)
+    } catch {}
+  }
   form.value = row
-    ? { ...row }
+    ? { ...row, giftPackageCode: parsedConfig.giftPackageCode || parsedConfig.packageCode || '' }
     : {
         title: '',
         subTitle: '',
@@ -216,7 +230,8 @@ function openModal(row) {
         linkType: 'NONE',
         linkValue: '',
         actionType: 'NAVIGATE',
-        actionConfig: ''
+        actionConfig: '',
+        giftPackageCode: ''
       }
   dialogVisible.value = true
 }
@@ -224,10 +239,23 @@ function openModal(row) {
 async function save() {
   saving.value = true
   try {
-    if (form.value.id) {
-      await request.put(`/admin/banners/${form.value.id}`, form.value)
+    const payload = { ...form.value }
+    if (payload.actionType === 'CLAIM_GIFT' && payload.giftPackageCode) {
+      let parsed = {}
+      try {
+        parsed = payload.actionConfig ? JSON.parse(payload.actionConfig) : {}
+      } catch {}
+      payload.actionConfig = JSON.stringify({
+        ...parsed,
+        giftPackageCode: payload.giftPackageCode,
+        limit: parsed.limit || 'DAILY',
+        banner_code: parsed.banner_code || payload.giftPackageCode
+      })
+    }
+    if (payload.id) {
+      await request.put(`/admin/banners/${payload.id}`, payload)
     } else {
-      await request.post('/admin/banners', form.value)
+      await request.post('/admin/banners', payload)
     }
     ElMessage.success('保存成功')
     dialogVisible.value = false
