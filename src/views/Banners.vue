@@ -10,7 +10,6 @@
     <el-card shadow="never">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="sortOrder" label="排序" width="80" />
-        <el-table-column prop="title" label="标题" min-width="160" />
         <el-table-column label="动作" width="120">
           <template #default="{ row }">
             <el-tag size="small" :type="getActionTypeTagType(row.actionType)">{{ getActionTypeLabel(row.actionType) }}</el-tag>
@@ -51,13 +50,12 @@
               v-if="row.imageUrl"
               :src="row.imageUrl"
               fit="cover"
-              style="width: 60px; height: 40px; border-radius: 4px"
+              style="width: 85.75px; height: 36px; border-radius: 4px"
               :preview-src-list="[row.imageUrl]"
             />
             <span v-else style="color: #999">无</span>
           </template>
         </el-table-column>
-        <el-table-column prop="tagText" label="标签" width="120" />
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="row.status ? 'success' : 'info'" size="small">{{ row.status ? '启用' : '停用' }}</el-tag>
@@ -76,9 +74,6 @@
 
     <el-dialog v-model="dialogVisible" :title="form.id ? '编辑 Banner' : '新建 Banner'" width="700px">
       <el-form :model="form" label-width="100px">
-        <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
-        <el-form-item label="副标题"><el-input v-model="form.subTitle" /></el-form-item>
-        <el-form-item label="标签"><el-input v-model="form.tagText" /></el-form-item>
         <el-form-item label="背景色">
           <el-color-picker v-model="form.bgColor" show-alpha />
         </el-form-item>
@@ -91,7 +86,7 @@
               <el-icon v-else class="uploader-icon"><Plus /></el-icon>
             </el-upload>
             <div class="upload-tip">
-              <p>推荐尺寸：400×288</p>
+              <p>推荐尺寸：686×288</p>
               <p>点击上传并裁剪</p>
             </div>
           </div>
@@ -178,10 +173,10 @@
           ref="cropperRef"
           :img="cropperImg"
           :auto-crop="true"
-          :auto-crop-width="400"
+          :auto-crop-width="686"
           :auto-crop-height="288"
           :fixed="true"
-          :fixed-number="[25, 18]"
+          :fixed-number="[343, 144]"
           :can-move-box="true"
           :center-box="true"
           :info="true"
@@ -302,10 +297,7 @@ function openModal(row) {
         bannerCode: parsedConfig.banner_code || parsedConfig.bannerCode || `banner_${row.id}`
       }
     : {
-        title: '',
-        subTitle: '',
         imageUrl: '',
-        tagText: '',
         bgColor: '',
         sortOrder: 1,
         linkType: 'NONE',
@@ -322,7 +314,7 @@ function openModal(row) {
 async function save() {
   saving.value = true
   try {
-    const payload = { ...form.value }
+    const payload = { ...form.value, title: 'Banner图片', subTitle: '', tagText: '' }
     if (payload.actionType === 'CLAIM_GIFT') {
       if (!payload.giftPackageCode) {
         ElMessage.error('请选择礼品包')
@@ -424,8 +416,8 @@ onMounted(load)
 }
 
 .image-uploader {
-  width: 160px;
-  height: 115px;
+  width: 171.5px;
+  height: 72px;
   border: 2px dashed #d9d9d9;
   border-radius: 8px;
   cursor: pointer;
