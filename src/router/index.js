@@ -28,6 +28,7 @@ const routes = [
       { path: 'gift-packages', component: () => import('../views/GiftPackages.vue'), meta: { title: '礼品包管理' } },
       { path: 'privileges', component: () => import('../views/Privileges.vue'), meta: { title: '权益配置' } },
       { path: 'task-center', component: () => import('../views/TaskCenter.vue'), meta: { title: '任务中心管理' } },
+      { path: 'review-tasks', component: () => import('../views/ReviewTasks.vue'), meta: { title: '审核任务管理' } },
       { path: 'checkin-config', component: () => import('../views/CheckinConfig.vue'), meta: { title: '签到配置' } },
       { path: 'activity-center', component: () => import('../views/ActivityCenter.vue'), meta: { title: '活动中心管理' } },
       { path: 'withdraw', component: () => import('../views/Withdraw.vue'), meta: { title: '提现管理' } },

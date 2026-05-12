@@ -1,12 +1,28 @@
 <template>
   <div>
     <el-card shadow="never" style="margin-bottom:16px">
-      <el-button type="primary" @click="openModal(null)"><el-icon><Plus/></el-icon> 新增任务</el-button>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:16px;font-weight:700;">任务中心</div>
+          <div style="font-size:12px;color:#909399;margin-top:4px;max-width:720px;line-height:1.6;">
+            这里现在定位为任务中心“聚合展示配置”，不再承载所有业务规则本身。像签到应走独立签到配置，礼包应走礼品包/活动配置；这里只配置任务卡片、奖励展示及接入的处理器类型。
+          </div>
+          <div style="font-size:12px;color:#c77700;margin-top:6px;max-width:720px;line-height:1.6;">
+            提示：邀请注册、邀请充值、注册礼包、首冲礼包这几类任务，必须配置礼包编码 giftPackageCode；否则用户无法领取礼包。
+          </div>
+        </div>
+        <el-button type="primary" @click="openModal(null)"><el-icon><Plus/></el-icon> 新增任务</el-button>
+      </div>
     </el-card>
     <el-card shadow="never">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="taskCode" label="任务代码" width="150" />
         <el-table-column prop="taskName" label="任务名称" min-width="150" />
+        <el-table-column label="接入能力" width="130">
+          <template #default="{row}">
+            <el-tag size="small">{{ getHandlerLabel(row) }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="任务类型" width="100">
           <template #default="{row}">
             <el-tag size="small" :type="getTaskTypeColor(row.taskType)">{{ getTaskTypeLabel(row.taskType) }}</el-tag>
@@ -72,9 +88,40 @@
           <el-input-number v-model="form.sortOrder" :min="0" />
           <div style="font-size:12px;color:#999;margin-top:4px">数字越小越靠前</div>
         </el-form-item>
+        <el-form-item label="接入能力">
+          <el-select v-model="form.handlerType" placeholder="请选择接入能力">
+            <el-option label="通用进度任务" value="GENERIC_PROGRESS" />
+            <el-option label="签到系统入口" value="CHECKIN" />
+            <el-option label="邀请好友注册" value="INVITE_REGISTER" />
+            <el-option label="邀请好友充值" value="INVITE_RECHARGE" />
+            <el-option label="注册礼包" value="REGISTER_GIFT" />
+            <el-option label="首冲礼包" value="FIRST_RECHARGE_GIFT" />
+            <el-option label="事件型任务" value="EVENT_TASK" />
+            <el-option label="审核型任务（预留）" value="REVIEW_TASK" />
+            <el-option label="礼包/权益入口（预留）" value="BENEFIT" />
+          </el-select>
+          <div style="font-size:12px;color:#999;margin-top:4px">新增真正的新能力仍需要后端 handler 接入；这里不是无代码万能任务引擎。</div>
+        </el-form-item>
+        <el-form-item label="业务分类">
+          <el-select v-model="form.bizCategory" placeholder="请选择业务分类">
+            <el-option label="事件型任务" value="EVENT_TASK" />
+            <el-option label="独立玩法系统" value="PLAY_SYSTEM" />
+            <el-option label="资格礼包/权益" value="BENEFIT" />
+            <el-option label="审核型任务" value="REVIEW_TASK" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="目标次数" v-if="showTargetCount">
+          <el-input-number v-model="form.targetCount" :min="1" />
+        </el-form-item>
+        <el-form-item label="礼包编码" v-if="requiresGiftPackage">
+          <el-select v-model="form.giftPackageCode" filterable placeholder="请选择礼品包">
+            <el-option v-for="item in giftPackageOptions" :key="item.packageCode" :label="`${item.name}（${item.packageCode}）`" :value="item.packageCode" />
+          </el-select>
+          <div style="font-size:12px;color:#999;margin-top:4px">邀请注册、邀请充值、注册礼包、首冲礼包都必须配置 giftPackageCode。</div>
+        </el-form-item>
         <el-form-item label="额外配置">
-          <el-input v-model="form.extraConfig" type="textarea" :rows="3" placeholder='JSON格式，例如：{"targetCount": 1}' />
-          <div style="font-size:12px;color:#999;margin-top:4px">可选，用于存储任务的额外配置信息</div>
+          <el-input v-model="form.extraConfig" type="textarea" :rows="4" placeholder='JSON格式，例如：{"handlerType":"GENERIC_PROGRESS","bizCategory":"EVENT_TASK","targetCount":1}' />
+          <div style="font-size:12px;color:#999;margin-top:4px">保存时会自动合并接入能力、业务分类和目标次数。</div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -86,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
@@ -95,6 +142,12 @@ const list = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({})
+const giftPackageOptions = ref([])
+
+const giftPackageHandlers = ['INVITE_REGISTER', 'INVITE_RECHARGE', 'REGISTER_GIFT', 'FIRST_RECHARGE_GIFT']
+const targetCountHandlers = ['GENERIC_PROGRESS', 'EVENT_TASK', 'INVITE_REGISTER', 'INVITE_RECHARGE']
+const requiresGiftPackage = computed(() => giftPackageHandlers.includes(form.value.handlerType))
+const showTargetCount = computed(() => targetCountHandlers.includes(form.value.handlerType))
 
 async function load() {
   loading.value = true
@@ -107,8 +160,24 @@ async function load() {
   }
 }
 
+async function loadGiftPackages() {
+  try {
+    giftPackageOptions.value = await request.get('/admin/gift-packages?activeOnly=true') || []
+  } catch (e) {
+    console.error(e)
+    giftPackageOptions.value = []
+  }
+}
+
 function openModal(row) {
-  form.value = row ? { ...row } : {
+  const extra = parseExtraConfig(row?.extraConfig)
+  form.value = row ? {
+    ...row,
+    handlerType: extra.handlerType || 'GENERIC_PROGRESS',
+    bizCategory: extra.bizCategory || 'EVENT_TASK',
+    targetCount: extra.targetCount || 1,
+    giftPackageCode: extra.giftPackageCode || ''
+  } : {
     taskCode: '',
     taskName: '',
     taskType: 'DAILY',
@@ -118,14 +187,53 @@ function openModal(row) {
     icon: '',
     sortOrder: 0,
     extraConfig: '',
+    handlerType: 'GENERIC_PROGRESS',
+    bizCategory: 'EVENT_TASK',
+    targetCount: 1,
+    giftPackageCode: '',
     isActive: true
   }
   dialogVisible.value = true
 }
 
+function parseExtraConfig(extraConfig) {
+  if (!extraConfig || !extraConfig.trim()) return {}
+  try {
+    return JSON.parse(extraConfig)
+  } catch {
+    return {}
+  }
+}
+
+function buildExtraConfig() {
+  const extra = parseExtraConfig(form.value.extraConfig)
+  extra.handlerType = form.value.handlerType || 'GENERIC_PROGRESS'
+  extra.bizCategory = form.value.bizCategory || 'EVENT_TASK'
+  if (showTargetCount.value) {
+    extra.targetCount = form.value.targetCount || 1
+  } else {
+    delete extra.targetCount
+  }
+  if (requiresGiftPackage.value) {
+    extra.giftPackageCode = (form.value.giftPackageCode || '').trim()
+  } else {
+    delete extra.giftPackageCode
+  }
+  form.value.extraConfig = JSON.stringify(extra)
+}
+
 async function save() {
   try {
-    // 验证 extraConfig 是否为有效 JSON
+    if (requiresGiftPackage.value && !(form.value.giftPackageCode || '').trim()) {
+      ElMessage.error('当前接入能力必须填写礼包编码 giftPackageCode')
+      return
+    }
+    if (showTargetCount.value && (!form.value.targetCount || form.value.targetCount < 1)) {
+      ElMessage.error('当前接入能力必须配置大于 0 的目标次数')
+      return
+    }
+
+    buildExtraConfig()
     if (form.value.extraConfig && form.value.extraConfig.trim()) {
       try {
         JSON.parse(form.value.extraConfig)
@@ -175,6 +283,23 @@ async function deleteItem(row) {
   }
 }
 
+function getHandlerLabel(row) {
+  const extra = parseExtraConfig(row.extraConfig)
+  const type = extra.handlerType || 'GENERIC_PROGRESS'
+  const map = {
+    'GENERIC_PROGRESS': '通用进度',
+    'EVENT_TASK': '事件任务',
+    'CHECKIN': '签到入口',
+    'INVITE_REGISTER': '邀请注册',
+    'INVITE_RECHARGE': '邀请充值',
+    'REGISTER_GIFT': '注册礼包',
+    'FIRST_RECHARGE_GIFT': '首冲礼包',
+    'REVIEW_TASK': '审核任务',
+    'BENEFIT': '礼包权益'
+  }
+  return map[type] || type
+}
+
 function getTaskTypeLabel(type) {
   const map = {
     'DAILY': '每日',
@@ -202,5 +327,8 @@ function getRewardLabel(type) {
   return map[type] || type
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadGiftPackages()
+})
 </script>
