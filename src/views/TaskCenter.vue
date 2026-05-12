@@ -181,14 +181,14 @@ const handlerDefaults = {
   INVITE_REGISTER: {
     taskCode: 'invite_register_task',
     taskName: '邀请好友注册',
-    description: '邀请指定数量好友注册后，可领取邀请注册礼包。',
-    taskType: 'ONCE'
+    description: '每邀请指定数量好友注册，即可重复领取邀请注册礼包。',
+    taskType: 'UNLIMITED'
   },
   INVITE_RECHARGE: {
     taskCode: 'invite_recharge_task',
     taskName: '邀请好友充值',
-    description: '邀请指定数量好友完成首充后，可领取邀请充值礼包。',
-    taskType: 'ONCE'
+    description: '每邀请指定数量好友完成首充，即可重复领取邀请充值礼包。',
+    taskType: 'UNLIMITED'
   },
   REGISTER_GIFT: {
     taskCode: 'register_gift_task',
@@ -227,8 +227,8 @@ const targetCountHandlers = ['GENERIC_PROGRESS', 'EVENT_TASK', 'INVITE_REGISTER'
 const fixedModuleHandlers = ['CHECKIN']
 const taskTypeOptionsByHandler = {
   CHECKIN: ['DAILY'],
-  INVITE_REGISTER: ['ONCE'],
-  INVITE_RECHARGE: ['ONCE'],
+  INVITE_REGISTER: ['UNLIMITED'],
+  INVITE_RECHARGE: ['UNLIMITED'],
   REGISTER_GIFT: ['ONCE'],
   FIRST_RECHARGE_GIFT: ['ONCE'],
   REVIEW_TASK: ['ONCE'],
@@ -259,17 +259,17 @@ const currentHandlerGuide = computed(() => {
     },
     INVITE_REGISTER: {
       title: '邀请好友注册',
-      description: '统计被邀请好友完成注册的人数，达标后可领取礼包。',
-      trigger: '好友通过邀请码完成注册，人数达到 targetCount。',
-      rewardFlow: '点击领取后，奖励礼包进入“我的礼品包”，由用户自行兑换。',
-      requirements: '必须配置达标次数 targetCount 和奖励礼包 giftPackageCode。'
+      description: '统计被邀请好友完成注册的人数，每满一档即可重复领取礼包。',
+      trigger: '好友通过邀请码完成注册，累计人数每达到一个 targetCount 就新增 1 次可领取次数。',
+      rewardFlow: '点击领取后，奖励礼包进入“我的礼品包”，后续继续邀请达到下一档还可再次领取。',
+      requirements: '必须配置达标次数 targetCount 和奖励礼包 giftPackageCode；任务类型固定为“无限制任务”。'
     },
     INVITE_RECHARGE: {
       title: '邀请好友充值',
-      description: '统计被邀请好友完成首次充值的人数，达标后可领取礼包。',
-      trigger: '好友通过邀请码注册并完成首充，人数达到 targetCount。',
-      rewardFlow: '点击领取后，奖励礼包进入“我的礼品包”，由用户自行兑换。',
-      requirements: '必须配置达标次数 targetCount 和奖励礼包 giftPackageCode。'
+      description: '统计被邀请好友完成首次充值的人数，每满一档即可重复领取礼包。',
+      trigger: '好友通过邀请码注册并完成首充，累计人数每达到一个 targetCount 就新增 1 次可领取次数。',
+      rewardFlow: '点击领取后，奖励礼包进入“我的礼品包”，后续继续邀请达到下一档还可再次领取。',
+      requirements: '必须配置达标次数 targetCount 和奖励礼包 giftPackageCode；任务类型固定为“无限制任务”。'
     },
     REGISTER_GIFT: {
       title: '注册礼包',
