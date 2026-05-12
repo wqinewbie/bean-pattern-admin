@@ -22,6 +22,16 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column label="任务引用" min-width="220">
+          <template #default="{ row }">
+            <div class="reward-tags">
+              <el-tag v-for="task in getReferencedTasks(row.packageCode)" :key="task.id || task.taskCode" type="info">
+                {{ task.taskName || task.taskCode }}
+              </el-tag>
+              <span v-if="!getReferencedTasks(row.packageCode).length" style="color:#909399;">未被任务引用</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="row.status ? 'success' : 'info'">{{ row.status ? '启用' : '停用' }}</el-tag>
@@ -77,11 +87,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../utils/request'
 
 const list = ref([])
 const giftTypes = ref([])
+const taskList = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const saving = ref(false)
@@ -155,11 +166,29 @@ function buildItemsJson() {
   return JSON.stringify(rewardItems.value.filter(item => item.type && Number(item.value) > 0))
 }
 
+function parseTaskExtraConfig(extraConfig) {
+  if (!extraConfig || !String(extraConfig).trim()) return {}
+  try {
+    return JSON.parse(extraConfig)
+  } catch {
+    return {}
+  }
+}
+
+function getReferencedTasks(packageCode) {
+  if (!packageCode) return []
+  return (taskList.value || []).filter(task => {
+    const extra = parseTaskExtraConfig(task.extraConfig)
+    return extra.giftPackageCode === packageCode
+  })
+}
+
 async function load() {
   loading.value = true
   try {
     giftTypes.value = await request.get('/admin/gift-types?activeOnly=true') || []
     list.value = await request.get('/admin/gift-packages') || []
+    taskList.value = await request.get('/admin/tasks') || []
   } finally {
     loading.value = false
   }
@@ -191,6 +220,23 @@ async function save() {
 }
 
 async function toggle(row) {
+  const referencedTasks = getReferencedTasks(row.packageCode)
+  if (row.status && referencedTasks.length) {
+    const taskNames = referencedTasks.map(task => task.taskName || task.taskCode).join('、')
+    try {
+      await ElMessageBox.confirm(
+        `该礼品包当前正被以下任务引用：${taskNames}。停用后，这些任务可能无法正常发奖，确定继续停用吗？`,
+        '停用提醒',
+        {
+          confirmButtonText: '继续停用',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+    } catch {
+      return
+    }
+  }
   await request.post(`/admin/gift-packages/${row.id}/toggle`)
   ElMessage.success(row.status ? '已停用' : '已启用')
   load()
