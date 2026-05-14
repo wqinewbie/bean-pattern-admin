@@ -43,9 +43,9 @@
 
     <el-card shadow="never">
       <template #header>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
           <span>签到统计</span>
-          <el-tag type="info">统计与记录列表待接入真实数据</el-tag>
+          <el-button size="small" @click="refreshRecords" :loading="recordLoading">刷新数据</el-button>
         </div>
       </template>
 
@@ -56,7 +56,66 @@
         <el-col :span="6"><el-statistic title="累计发放礼包" :value="statistics.totalRewardValue || 0"><template #suffix>份</template></el-statistic></el-col>
       </el-row>
 
-      <el-empty description="签到记录列表待接入" />
+      <div class="filter-bar">
+        <el-input
+          v-model="query.keyword"
+          placeholder="搜索用户ID、昵称、手机号或 openId"
+          clearable
+          style="width: 280px;"
+          @keyup.enter="searchRecords"
+          @clear="searchRecords"
+        />
+        <el-date-picker
+          v-model="query.dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          style="width: 260px;"
+          @change="searchRecords"
+        />
+        <el-button type="primary" @click="searchRecords">查询</el-button>
+        <el-button @click="resetSearch">重置</el-button>
+      </div>
+
+      <el-table :data="records" border stripe v-loading="recordLoading" empty-text="暂无签到记录">
+        <el-table-column prop="id" label="记录ID" width="90" />
+        <el-table-column label="用户" min-width="220">
+          <template #default="{ row }">
+            <div class="user-cell">
+              <el-avatar :size="36" :src="row.avatarUrl || ''">{{ userInitial(row) }}</el-avatar>
+              <div class="user-info">
+                <div class="user-name">{{ row.nickName || '未设置昵称' }}</div>
+                <div class="user-meta">ID：{{ row.userId }}</div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="phone" label="手机号" min-width="130">
+          <template #default="{ row }">{{ row.phone || '-' }}</template>
+        </el-table-column>
+        <el-table-column prop="checkinDate" label="签到日期" min-width="120" />
+        <el-table-column prop="continuousDays" label="连续天数" width="110">
+          <template #default="{ row }">
+            <el-tag type="success">{{ row.continuousDays || 0 }} 天</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="签到时间" min-width="170" />
+        <el-table-column prop="openId" label="OpenID" min-width="220" show-overflow-tooltip />
+      </el-table>
+
+      <div class="pagination-wrap">
+        <el-pagination
+          v-model:current-page="query.page"
+          v-model:page-size="query.pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="loadRecords"
+          @current-change="loadRecords"
+        />
+      </div>
     </el-card>
   </div>
 </template>
@@ -70,11 +129,20 @@ const config = ref({ continuousDaysRequired: 3, giftPackageCode: '', isActive: t
 const saving = ref(false)
 const statistics = ref({})
 const giftPackages = ref([])
+const records = ref([])
+const total = ref(0)
+const recordLoading = ref(false)
+const query = ref({ page: 1, pageSize: 20, keyword: '', dateRange: [] })
 
 function giftPackageLabel(code) {
   if (!code) return '未配置'
   const matched = giftPackages.value.find(item => item.packageCode === code)
   return matched ? `${matched.name}（${matched.packageCode}）` : code
+}
+
+function userInitial(row) {
+  const name = row.nickName || row.userId || '?'
+  return String(name).slice(0, 1)
 }
 
 async function loadConfig() {
@@ -123,10 +191,47 @@ async function loadStatistics() {
   }
 }
 
+async function loadRecords() {
+  recordLoading.value = true
+  try {
+    const params = new URLSearchParams()
+    params.set('page', query.value.page)
+    params.set('pageSize', query.value.pageSize)
+    if (query.value.keyword) params.set('keyword', query.value.keyword.trim())
+    if (query.value.dateRange && query.value.dateRange.length === 2) {
+      params.set('startDate', query.value.dateRange[0])
+      params.set('endDate', query.value.dateRange[1])
+    }
+    const data = await request.get(`/admin/checkin/recent?${params.toString()}`)
+    records.value = data?.list || []
+    total.value = data?.total || 0
+  } catch (e) {
+    ElMessage.error('加载签到记录失败：' + (e.message || '未知错误'))
+  } finally {
+    recordLoading.value = false
+  }
+}
+
+function searchRecords() {
+  query.value.page = 1
+  loadRecords()
+}
+
+function resetSearch() {
+  query.value.keyword = ''
+  query.value.dateRange = []
+  query.value.page = 1
+  loadRecords()
+}
+
+async function refreshRecords() {
+  await Promise.all([loadStatistics(), loadRecords()])
+}
+
 onMounted(async () => {
   await loadGiftPackages()
   await loadConfig()
-  loadStatistics()
+  refreshRecords()
 })
 </script>
 
@@ -136,4 +241,10 @@ onMounted(async () => {
 .preview-box { margin-top: 20px; padding: 16px 18px; border-radius: 10px; background: #faf6ef; border: 1px solid #f0e2c2; }
 .preview-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #8a5b20; }
 .preview-line { font-size: 13px; line-height: 1.8; color: #606266; }
+.filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.user-cell { display: flex; align-items: center; gap: 10px; }
+.user-info { min-width: 0; }
+.user-name { font-size: 14px; font-weight: 600; color: #303133; }
+.user-meta { font-size: 12px; color: #909399; margin-top: 2px; }
+.pagination-wrap { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>
