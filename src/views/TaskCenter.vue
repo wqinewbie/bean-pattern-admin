@@ -120,7 +120,7 @@
           <el-select v-model="form.giftPackageCode" filterable placeholder="请选择礼品包">
             <el-option v-for="item in giftPackageOptions" :key="item.packageCode" :label="`${item.name}（${item.packageCode}）`" :value="item.packageCode" />
           </el-select>
-          <div style="font-size:12px;color:#999;margin-top:4px">礼包会进入用户的“我的礼品包”，由用户自行兑换。</div>
+          <div style="font-size:12px;color:#999;margin-top:4px">礼包会进入用户的“我的礼品包”，由用户自行兑换；除签到入口外，所有奖励型任务必须绑定礼包。</div>
         </el-form-item>
 
         <el-form-item label="奖励展示" v-if="showRewardDisplay">
@@ -222,7 +222,7 @@ const handlerDefaults = {
   }
 }
 
-const giftPackageHandlers = ['INVITE_REGISTER', 'INVITE_RECHARGE', 'REGISTER_GIFT', 'FIRST_RECHARGE_GIFT']
+const giftPackageHandlers = ['INVITE_REGISTER', 'INVITE_RECHARGE', 'REGISTER_GIFT', 'FIRST_RECHARGE_GIFT', 'REVIEW_TASK', 'GENERIC_PROGRESS', 'EVENT_TASK']
 const targetCountHandlers = ['GENERIC_PROGRESS', 'EVENT_TASK', 'INVITE_REGISTER', 'INVITE_RECHARGE']
 const fixedModuleHandlers = ['CHECKIN']
 const taskTypeOptionsByHandler = {
@@ -289,22 +289,22 @@ const currentHandlerGuide = computed(() => {
       title: '审核型任务',
       description: '用户上传凭证后进入后台审核，审核通过后再发放奖励。',
       trigger: '用户在独立提交页上传截图，后台审核通过后生效。',
-      rewardFlow: '可按后端逻辑直接发奖，或扩展为礼包式发放。',
-      requirements: '建议配置清晰的任务描述与审核说明，便于用户理解上传要求。'
+      rewardFlow: '审核通过后，奖励礼品包进入“我的礼品包”，用户自行兑换。',
+      requirements: '必须配置奖励礼包 giftPackageCode；建议配置清晰的任务描述与审核说明，便于用户理解上传要求。'
     },
     EVENT_TASK: {
       title: '事件任务入口',
       description: '用于接入已有事件型能力的任务卡片。',
       trigger: '由对应业务能力在后端更新进度或资格。',
-      rewardFlow: '可直接显示奖励，也可结合礼包逻辑。',
-      requirements: '如有进度目标请配置 targetCount；具体逻辑需有后端能力承接。'
+      rewardFlow: '达标领取后，奖励礼品包进入“我的礼品包”，用户自行兑换。',
+      requirements: '必须配置 targetCount 和奖励礼包 giftPackageCode；具体逻辑需有后端能力承接。'
     },
     GENERIC_PROGRESS: {
       title: '通用进度任务',
       description: '适合简单的计数型任务，由统一进度接口累计次数。',
       trigger: '通过通用任务完成接口累计 currentCount，达到 targetCount 后可领取。',
-      rewardFlow: '通常按任务奖励展示直接领取。',
-      requirements: '必须配置 targetCount；适合简单任务，不适合复杂业务系统。'
+      rewardFlow: '达标领取后，奖励礼品包进入“我的礼品包”，用户自行兑换。',
+      requirements: '必须配置 targetCount 和奖励礼包 giftPackageCode；适合简单任务，不适合复杂业务系统。'
     }
   }
   return map[type] || map.GENERIC_PROGRESS

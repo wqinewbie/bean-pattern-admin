@@ -25,10 +25,17 @@
         <el-table-column label="任务引用" min-width="220">
           <template #default="{ row }">
             <div class="reward-tags">
-              <el-tag v-for="task in getReferencedTasks(row.packageCode)" :key="task.id || task.taskCode" type="info">
-                {{ task.taskName || task.taskCode }}
+              <el-tag v-for="task in getReferencedTasks(row.packageCode)" :key="'task-' + (task.id || task.taskCode)" type="info">
+                任务：{{ task.taskName || task.taskCode }}
               </el-tag>
-              <span v-if="!getReferencedTasks(row.packageCode).length" style="color:#909399;">未被任务引用</span>
+              <el-tag v-for="activity in getReferencedActivities(row.packageCode)" :key="'activity-' + (activity.id || activity.activityCode)" type="success">
+                活动：{{ activity.title || activity.activityCode }}
+              </el-tag>
+              <el-tag v-for="banner in getReferencedBanners(row.packageCode)" :key="'banner-' + banner.id" type="warning">
+                Banner：{{ banner.title || ('#' + banner.id) }}
+              </el-tag>
+              <el-tag v-if="checkinConfig.giftPackageCode === row.packageCode" type="danger">签到奖励</el-tag>
+              <span v-if="!getReferencedTasks(row.packageCode).length && !getReferencedActivities(row.packageCode).length && !getReferencedBanners(row.packageCode).length && checkinConfig.giftPackageCode !== row.packageCode" style="color:#909399;">未被模块引用</span>
             </div>
           </template>
         </el-table-column>
@@ -93,6 +100,9 @@ import request from '../utils/request'
 const list = ref([])
 const giftTypes = ref([])
 const taskList = ref([])
+const activityList = ref([])
+const bannerList = ref([])
+const checkinConfig = ref({})
 const loading = ref(false)
 const dialogVisible = ref(false)
 const saving = ref(false)
@@ -183,12 +193,33 @@ function getReferencedTasks(packageCode) {
   })
 }
 
+function getReferencedActivities(packageCode) {
+  if (!packageCode) return []
+  return (activityList.value || []).filter(activity => activity.giftPackageCode === packageCode)
+}
+
+function parseBannerActionConfig(actionConfig) {
+  if (!actionConfig || !String(actionConfig).trim()) return {}
+  try { return JSON.parse(actionConfig) } catch { return {} }
+}
+
+function getReferencedBanners(packageCode) {
+  if (!packageCode) return []
+  return (bannerList.value || []).filter(banner => {
+    const config = parseBannerActionConfig(banner.actionConfig)
+    return config.giftPackageCode === packageCode || config.packageCode === packageCode
+  })
+}
+
 async function load() {
   loading.value = true
   try {
     giftTypes.value = await request.get('/admin/gift-types?activeOnly=true') || []
     list.value = await request.get('/admin/gift-packages') || []
     taskList.value = await request.get('/admin/tasks') || []
+    activityList.value = await request.get('/admin/activities') || []
+    bannerList.value = await request.get('/admin/banners') || []
+    checkinConfig.value = await request.get('/admin/checkin/config') || {}
   } finally {
     loading.value = false
   }
