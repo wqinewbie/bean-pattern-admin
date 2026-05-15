@@ -4,11 +4,12 @@
       <el-row :gutter="12">
         <el-col :span="4">
           <el-select v-model="filterStatus" placeholder="审核状态" clearable @change="load">
-            <el-option label="全部" value="" />
-            <el-option label="待审核" value="0" />
-            <el-option label="已上线" value="1" />
-            <el-option label="已下线" value="2" />
-            <el-option label="未通过" value="3" />
+            <el-option
+              v-for="item in patternStatusDict.optionsWithAll"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-col>
       </el-row>
@@ -30,7 +31,9 @@
         <el-table-column prop="downloadCount" label="下载数" width="80" />
         <el-table-column label="状态" width="100">
           <template #default="{row}">
-            <el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag>
+            <el-tag :type="patternStatusDict.tagType(row.status)" size="small">
+              {{ patternStatusDict.label(row.status) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="时间" width="160" />
@@ -56,6 +59,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 import request from '../utils/request'
 
 const list = ref([])
@@ -64,9 +69,7 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
 const filterStatus = ref('')
-
-const statusText = s => ({0:'待审核',1:'已上线',2:'已下线',3:'未通过'}[s] ?? '未知')
-const statusType = s => ({0:'warning',1:'success',2:'info',3:'danger'}[s] ?? 'info')
+const patternStatusDict = useDict(DICT_TYPE.PATTERN_STATUS)
 
 async function load() {
   loading.value = true

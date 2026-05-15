@@ -94,11 +94,7 @@
 
         <el-form-item label="动作类型">
           <el-select v-model="form.actionType" style="width: 100%">
-            <el-option label="小程序内跳转" value="NAVIGATE" />
-            <el-option label="活动详情页" value="ACTIVITY" />
-            <el-option label="领取礼品包" value="CLAIM_GIFT" />
-            <el-option label="外部链接" value="EXTERNAL" />
-            <el-option label="无动作（兼容旧版）" value="NONE" />
+            <el-option v-for="item in bannerActionTypeDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
@@ -120,8 +116,7 @@
 
         <el-form-item label="领取限制" v-if="form.actionType === 'CLAIM_GIFT'">
           <el-select v-model="form.claimLimit" style="width: 100%">
-            <el-option label="仅一次" value="ONCE" />
-            <el-option label="每天一次" value="DAILY" />
+            <el-option v-for="item in bannerClaimLimitDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
@@ -198,6 +193,8 @@ import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { VueCropper } from 'vue-cropper'
 import 'vue-cropper/dist/index.css'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
@@ -205,6 +202,8 @@ const dialogVisible = ref(false)
 const form = ref({})
 const saving = ref(false)
 const giftPackages = ref([])
+const bannerActionTypeDict = useDict(DICT_TYPE.BANNER_ACTION_TYPE)
+const bannerClaimLimitDict = useDict(DICT_TYPE.BANNER_CLAIM_LIMIT)
 
 const cropperVisible = ref(false)
 const cropperImg = ref('')
@@ -236,35 +235,28 @@ function parseActionConfig(actionConfig) {
 }
 
 function getActionTypeLabel(actionType) {
-  const map = {
+  const fallback = {
     NAVIGATE: '小程序内跳转',
     ACTIVITY: '活动详情页',
     CLAIM_GIFT: '领取礼品包',
     EXTERNAL: '外部链接',
     NONE: '无动作'
   }
-  return map[actionType] || actionType || '未设置'
+  return bannerActionTypeDict.label(actionType) || fallback[actionType] || actionType || '未设置'
 }
 
 function getActionTypeTagType(actionType) {
-  const map = {
-    NAVIGATE: '',
-    ACTIVITY: 'warning',
-    CLAIM_GIFT: 'success',
-    EXTERNAL: 'info',
-    NONE: 'info'
-  }
-  return map[actionType] || 'info'
+  return bannerActionTypeDict.tagType(actionType)
 }
 
 function getClaimLimitLabel(actionConfig) {
   const parsedConfig = parseActionConfig(actionConfig)
-  return parsedConfig.limit === 'DAILY' ? '每天一次' : '仅一次'
+  return bannerClaimLimitDict.label(parsedConfig.limit || 'ONCE')
 }
 
 function getClaimLimitTagType(actionConfig) {
   const parsedConfig = parseActionConfig(actionConfig)
-  return parsedConfig.limit === 'DAILY' ? 'success' : 'info'
+  return bannerClaimLimitDict.tagType(parsedConfig.limit || 'ONCE')
 }
 
 function getGiftPackageCode(actionConfig) {

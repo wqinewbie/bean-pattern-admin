@@ -2,10 +2,12 @@
   <div>
     <el-card shadow="never" style="margin-bottom:16px">
       <el-select v-model="filterStatus" placeholder="订单状态" clearable @change="load" style="width:160px">
-        <el-option label="全部" value="" />
-        <el-option label="已支付" value="PAID" />
-        <el-option label="待支付" value="PENDING" />
-        <el-option label="已退款" value="REFUNDED" />
+        <el-option
+          v-for="item in orderStatusDict.optionsWithAll"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
       </el-select>
     </el-card>
     <el-card shadow="never">
@@ -18,8 +20,8 @@
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{row}">
-            <el-tag :type="{PAID:'success',PENDING:'warning',REFUNDED:'danger'}[row.status]" size="small">
-              {{ {PAID:'已支付',PENDING:'待支付',REFUNDED:'已退款'}[row.status] }}
+            <el-tag :type="orderStatusDict.tagType(row.status)" size="small">
+              {{ orderStatusDict.label(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -35,6 +37,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 import request from '../utils/request'
 
 const list = ref([])
@@ -43,6 +47,7 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
 const filterStatus = ref('')
+const orderStatusDict = useDict(DICT_TYPE.ORDER_STATUS)
 
 async function load() {
   loading.value = true

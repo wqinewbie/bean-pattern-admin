@@ -14,7 +14,7 @@
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="activityCode" label="活动编码" width="150" />
         <el-table-column prop="title" label="活动标题" min-width="200" />
-        <el-table-column label="类型" width="100"><template #default="{row}"><el-tag size="small" :type="row.activityType === 'GIFT' ? 'success' : 'info'">{{ getActivityTypeLabel(row.activityType) }}</el-tag></template></el-table-column>
+        <el-table-column label="类型" width="100"><template #default="{row}"><el-tag size="small" :type="activityTypeDict.tagType(row.activityType)">{{ getActivityTypeLabel(row.activityType) }}</el-tag></template></el-table-column>
         <el-table-column label="礼品包" min-width="220"><template #default="{row}">{{ getGiftPackageLabel(row.giftPackageCode) }}</template></el-table-column>
         <el-table-column prop="description" label="活动描述" min-width="200" show-overflow-tooltip />
         <el-table-column label="名额" width="120"><template #default="{row}"><span v-if="row.totalQuota > 0">剩余 {{ row.remainQuota }} / {{ row.totalQuota }}</span><span v-else>无限制</span></template></el-table-column>
@@ -33,8 +33,7 @@
 
         <el-form-item label="活动类型">
           <el-radio-group v-model="form.activityType">
-            <el-radio-button label="CONTENT">内容页</el-radio-button>
-            <el-radio-button label="GIFT">礼品活动</el-radio-button>
+            <el-radio-button v-for="item in activityTypeDict.options" :key="item.value" :label="item.value">{{ item.label }}</el-radio-button>
           </el-radio-group>
           <div class="form-help">内容页只承接图文和跳转；礼品活动必须绑定礼品包。</div>
         </el-form-item>
@@ -48,10 +47,7 @@
         <el-form-item label="操作按钮文案"><el-input v-model="form.buttonText" placeholder="例如：立即领取、查看详情" /></el-form-item>
         <el-form-item label="按钮动作">
           <el-select v-model="form.buttonAction" placeholder="请选择按钮动作">
-            <el-option label="领取礼品包" value="CLAIM" :disabled="form.activityType !== 'GIFT'" />
-            <el-option label="小程序内跳转" value="NAVIGATE" />
-            <el-option label="外部链接" value="EXTERNAL" />
-            <el-option label="无按钮动作" value="NONE" />
+            <el-option v-for="item in activityButtonActionDict.options" :key="item.value" :label="item.label" :value="item.value" :disabled="item.value === 'CLAIM' && form.activityType !== 'GIFT'" />
           </el-select>
         </el-form-item>
         <el-form-item label="跳转URL" v-if="form.buttonAction === 'NAVIGATE' || form.buttonAction === 'EXTERNAL'"><el-input v-model="form.buttonUrl" placeholder="例如：/pages/vip/vip 或 https://example.com" /></el-form-item>
@@ -63,7 +59,7 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="限制类型" v-if="form.activityType === 'GIFT'"><el-select v-model="form.limitType"><el-option label="每人一次" value="ONCE" /><el-option label="每日一次" value="DAILY" /><el-option label="无限制" value="UNLIMITED" /></el-select></el-form-item>
+        <el-form-item label="限制类型" v-if="form.activityType === 'GIFT'"><el-select v-model="form.limitType"><el-option v-for="item in activityLimitTypeDict.options" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item>
         <el-form-item label="总名额" v-if="form.activityType === 'GIFT'"><el-input-number v-model="form.totalQuota" :min="0" /><div class="form-help">0表示无限制</div></el-form-item>
         <el-form-item label="剩余名额" v-if="form.activityType === 'GIFT'"><el-input-number v-model="form.remainQuota" :min="0" :max="form.totalQuota || undefined" /></el-form-item>
         <el-form-item label="开始时间"><el-date-picker v-model="form.startAt" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" /></el-form-item>
@@ -82,6 +78,8 @@ import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { createEditor, createToolbar } from '@wangeditor/editor'
 import '@wangeditor/editor/dist/css/style.css'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
@@ -91,6 +89,9 @@ const giftPackages = ref([])
 const editorToolbar = ref(null)
 const editorContainer = ref(null)
 let editor = null
+const activityTypeDict = useDict(DICT_TYPE.ACTIVITY_TYPE)
+const activityButtonActionDict = useDict(DICT_TYPE.ACTIVITY_BUTTON_ACTION)
+const activityLimitTypeDict = useDict(DICT_TYPE.ACTIVITY_LIMIT_TYPE)
 
 async function load() {
   loading.value = true
@@ -140,7 +141,7 @@ async function toggleStatus(row) { await request.put(`/admin/activities/${row.id
 async function deleteItem(row) {
   try { await ElMessageBox.confirm('确定要删除该活动吗？删除后入口将无法跳转到该活动。', '提示', { type: 'warning' }); await request.delete(`/admin/activities/${row.id}`); ElMessage.success('删除成功'); load() } catch (e) { if (e !== 'cancel') console.error(e) }
 }
-function getActivityTypeLabel(type) { return type === 'GIFT' ? '礼品活动' : '内容页' }
+function getActivityTypeLabel(type) { return activityTypeDict.label(type) }
 function getGiftPackageLabel(code) { if (!code) return '—'; const matched = giftPackages.value.find(item => item.packageCode === code); return matched ? `${matched.name}（${matched.packageCode}）` : code }
 
 onMounted(() => { load(); loadGiftPackages() })

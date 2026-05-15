@@ -9,16 +9,22 @@
         </el-col>
         <el-col :span="4">
           <el-select v-model="filterVip" placeholder="VIP状态" clearable @change="load">
-            <el-option label="全部" value="" />
-            <el-option label="VIP用户" value="1" />
-            <el-option label="普通用户" value="0" />
+            <el-option
+              v-for="item in vipStatusDict.optionsWithAll"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-col>
         <el-col :span="4">
           <el-select v-model="filterStatus" placeholder="用户状态" clearable @change="load">
-            <el-option label="全部" value="" />
-            <el-option label="正常" value="1" />
-            <el-option label="禁用" value="0" />
+            <el-option
+              v-for="item in userStatusDict.optionsWithAll"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-col>
       </el-row>
@@ -48,12 +54,16 @@
         <el-table-column prop="aiQuota" label="AI次数" width="80" />
         <el-table-column label="VIP" width="90">
           <template #default="{row}">
-            <el-tag :type="row.vipLevel ? 'warning' : 'info'" size="small">{{ row.vipLevel ? 'VIP' : '普通' }}</el-tag>
+            <el-tag :type="vipStatusDict.tagType(row.vipLevel ? 1 : 0)" size="small">
+              {{ vipStatusDict.label(row.vipLevel ? 1 : 0) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{row}">
-            <el-tag :type="row.status ? 'success' : 'danger'" size="small">{{ row.status ? '正常' : '禁用' }}</el-tag>
+            <el-tag :type="userStatusDict.tagType(row.status)" size="small">
+              {{ userStatusDict.label(row.status) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="注册时间" width="160" />
@@ -81,6 +91,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 import request from '../utils/request'
 
 const list = ref([])
@@ -91,6 +103,8 @@ const pageSize = ref(10)
 const q = ref('')
 const filterVip = ref('')
 const filterStatus = ref('')
+const vipStatusDict = useDict(DICT_TYPE.VIP_STATUS)
+const userStatusDict = useDict(DICT_TYPE.USER_STATUS)
 let searchTimer = null
 
 async function load() {

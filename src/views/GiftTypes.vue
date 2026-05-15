@@ -22,7 +22,7 @@
         <el-table-column prop="description" label="描述" min-width="220" show-overflow-tooltip />
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.status ? 'success' : 'info'">{{ row.status ? '启用' : '停用' }}</el-tag>
+            <el-tag :type="giftStatusDict.tagType(row.status)" size="small">{{ giftStatusDict.label(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
@@ -41,17 +41,12 @@
         <el-form-item label="业务分类"><el-input v-model="form.giftCategory" placeholder="如 COUPON / MEMBERSHIP / QUOTA" /></el-form-item>
         <el-form-item label="面值类型">
           <el-select v-model="form.valueType" style="width:100%">
-            <el-option label="数值" value="number" />
-            <el-option label="折扣" value="discount" />
-            <el-option label="天数" value="days" />
-            <el-option label="次数" value="times" />
+            <el-option v-for="item in giftValueTypeDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="适用商品">
           <el-select v-model="form.targetProductType" style="width:100%">
-            <el-option label="全部" value="all" />
-            <el-option label="会员卡" value="vip" />
-            <el-option label="次卡" value="card" />
+            <el-option v-for="item in giftTargetProductDict.optionsWithAll" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="描述"><el-input v-model="form.description" type="textarea" :rows="3" /></el-form-item>
@@ -69,11 +64,16 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({})
+const giftValueTypeDict = useDict(DICT_TYPE.GIFT_TYPE_VALUE_TYPE)
+const giftTargetProductDict = useDict(DICT_TYPE.GIFT_TYPE_TARGET_PRODUCT)
+const giftStatusDict = useDict(DICT_TYPE.GIFT_TYPE_STATUS)
 
 async function load() {
   loading.value = true
@@ -92,13 +92,11 @@ function openModal(row) {
 }
 
 function formatValueType(type) {
-  const map = { number: '数值', discount: '折扣', days: '天数', times: '次数' }
-  return map[type] || type || '-'
+  return giftValueTypeDict.label(type)
 }
 
 function formatTargetProduct(type) {
-  const map = { all: '全部', vip: '会员卡', card: '次卡' }
-  return map[type] || type || '-'
+  return giftTargetProductDict.label(type)
 }
 
 async function save() {
