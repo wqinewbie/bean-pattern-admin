@@ -116,7 +116,7 @@ async function loadData() {
   loading.value = true
   try {
     const res = await getDictItems()
-    list.value = res.data || []
+    list.value = res || []
   } catch (error) {
     ElMessage.error('加载失败')
   } finally {

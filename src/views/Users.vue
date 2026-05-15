@@ -10,7 +10,7 @@
         <el-col :span="4">
           <el-select v-model="filterVip" placeholder="VIP状态" clearable @change="load">
             <el-option
-              v-for="item in vipStatusDict.optionsWithAll"
+              v-for="item in vipStatusDict?.optionsWithAll || []"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -20,7 +20,7 @@
         <el-col :span="4">
           <el-select v-model="filterStatus" placeholder="用户状态" clearable @change="load">
             <el-option
-              v-for="item in userStatusDict.optionsWithAll"
+              v-for="item in userStatusDict?.optionsWithAll || []"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -54,15 +54,15 @@
         <el-table-column prop="aiQuota" label="AI次数" width="80" />
         <el-table-column label="VIP" width="90">
           <template #default="{row}">
-            <el-tag :type="vipStatusDict.tagType(row.vipLevel ? 1 : 0)" size="small">
-              {{ vipStatusDict.label(row.vipLevel ? 1 : 0) }}
+            <el-tag :type="vipStatusDict?.tagType?.(row.vipLevel ? 1 : 0) || 'info'" size="small">
+              {{ vipStatusDict?.label?.(row.vipLevel ? 1 : 0) || '-' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{row}">
-            <el-tag :type="userStatusDict.tagType(row.status)" size="small">
-              {{ userStatusDict.label(row.status) }}
+            <el-tag :type="userStatusDict?.tagType?.(row.status) || 'info'" size="small">
+              {{ userStatusDict?.label?.(row.status) || '-' }}
             </el-tag>
           </template>
         </el-table-column>
