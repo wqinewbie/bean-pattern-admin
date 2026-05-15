@@ -10,7 +10,7 @@
         <el-col :span="4">
           <el-select v-model="filterVip" placeholder="VIP状态" clearable @change="load">
             <el-option
-              v-for="item in vipStatusDict?.optionsWithAll || []"
+              v-for="item in vipStatusDict?.optionsWithAll.value || []"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -20,7 +20,7 @@
         <el-col :span="4">
           <el-select v-model="filterStatus" placeholder="用户状态" clearable @change="load">
             <el-option
-              v-for="item in userStatusDict?.optionsWithAll || []"
+              v-for="item in userStatusDict?.optionsWithAll.value || []"
               :key="item.value"
               :label="item.label"
               :value="item.value"

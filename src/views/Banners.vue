@@ -94,13 +94,13 @@
 
         <el-form-item label="动作类型">
           <el-select v-model="form.actionType" style="width: 100%">
-            <el-option v-for="item in bannerActionTypeDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in bannerActionTypeDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="跳转路径" v-if="form.actionType === 'NAVIGATE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
-            <el-option v-for="item in miniappRouteDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in miniappRouteDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
@@ -116,7 +116,7 @@
 
         <el-form-item label="领取限制" v-if="form.actionType === 'CLAIM_GIFT'">
           <el-select v-model="form.claimLimit" style="width: 100%">
-            <el-option v-for="item in bannerClaimLimitDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in bannerClaimLimitDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
@@ -140,13 +140,13 @@
         <!-- 兼容旧版本字段 -->
         <el-form-item label="跳转类型（旧）" v-if="!form.actionType || form.actionType === 'NONE'">
           <el-select v-model="form.linkType" style="width: 100%">
-            <el-option v-for="item in bannerLinkTypeDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in bannerLinkTypeDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="跳转值（旧）" v-if="(!form.actionType || form.actionType === 'NONE') && form.linkType === 'PAGE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
-            <el-option v-for="item in miniappRouteDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in miniappRouteDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 

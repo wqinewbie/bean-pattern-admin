@@ -33,7 +33,7 @@
 
         <el-form-item label="活动类型">
           <el-radio-group v-model="form.activityType">
-            <el-radio v-for="item in activityTypeDict.options" :key="item.value" :value="item.value">{{ item.label }}</el-radio>
+            <el-radio v-for="item in activityTypeDict.options.value" :key="item.value" :value="item.value">{{ item.label }}</el-radio>
           </el-radio-group>
           <div class="form-help">内容页只承接图文和跳转；礼品活动必须绑定礼品包。</div>
         </el-form-item>
@@ -47,7 +47,7 @@
         <el-form-item label="操作按钮文案"><el-input v-model="form.buttonText" placeholder="例如：立即领取、查看详情" /></el-form-item>
         <el-form-item label="按钮动作">
           <el-select v-model="form.buttonAction" placeholder="请选择按钮动作">
-            <el-option v-for="item in activityButtonActionDict.options" :key="item.value" :label="item.label" :value="item.value" :disabled="item.value === 'CLAIM' && form.activityType !== 'GIFT'" />
+            <el-option v-for="item in activityButtonActionDict.options.value" :key="item.value" :label="item.label" :value="item.value" :disabled="item.value === 'CLAIM' && form.activityType !== 'GIFT'" />
           </el-select>
         </el-form-item>
         <el-form-item label="跳转URL" v-if="form.buttonAction === 'NAVIGATE' || form.buttonAction === 'EXTERNAL'"><el-input v-model="form.buttonUrl" placeholder="例如：/pages/vip/vip 或 https://example.com" /></el-form-item>
@@ -59,7 +59,7 @@
           </div>
         </el-form-item>
 
-        <el-form-item label="限制类型" v-if="form.activityType === 'GIFT'"><el-select v-model="form.limitType"><el-option v-for="item in activityLimitTypeDict.options" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item>
+        <el-form-item label="限制类型" v-if="form.activityType === 'GIFT'"><el-select v-model="form.limitType"><el-option v-for="item in activityLimitTypeDict.options.value" :key="item.value" :label="item.label" :value="item.value" /></el-select></el-form-item>
         <el-form-item label="总名额" v-if="form.activityType === 'GIFT'"><el-input-number v-model="form.totalQuota" :min="0" /><div class="form-help">0表示无限制</div></el-form-item>
         <el-form-item label="剩余名额" v-if="form.activityType === 'GIFT'"><el-input-number v-model="form.remainQuota" :min="0" :max="form.totalQuota || undefined" /></el-form-item>
         <el-form-item label="开始时间"><el-date-picker v-model="form.startAt" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" /></el-form-item>

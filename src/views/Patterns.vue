@@ -5,7 +5,7 @@
         <el-col :span="4">
           <el-select v-model="filterStatus" placeholder="审核状态" clearable @change="load">
             <el-option
-              v-for="item in patternStatusDict.optionsWithAll"
+              v-for="item in patternStatusDict.optionsWithAll.value"
               :key="item.value"
               :label="item.label"
               :value="item.value"

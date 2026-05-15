@@ -62,7 +62,7 @@
       <el-form :model="form" label-width="120px">
         <el-form-item label="任务能力类型">
           <el-select v-model="form.handlerType" placeholder="请选择任务能力类型">
-            <el-option v-for="item in taskHandlerDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in taskHandlerDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
           <div style="font-size:12px;color:#999;margin-top:4px">先选择已有能力，再配置这张任务卡片的展示信息。</div>
         </el-form-item>
@@ -125,7 +125,7 @@
 
         <el-form-item label="奖励展示" v-if="showRewardDisplay">
           <el-select v-model="form.rewardType" placeholder="请选择奖励展示类型">
-            <el-option v-for="item in taskRewardDisplayDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in taskRewardDisplayDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
           <div style="font-size:12px;color:#999;margin-top:4px">仅用于任务卡片展示，不代表最终发奖一定直接到账。</div>
         </el-form-item>

@@ -41,12 +41,12 @@
         <el-form-item label="业务分类"><el-input v-model="form.giftCategory" placeholder="如 COUPON / MEMBERSHIP / QUOTA" /></el-form-item>
         <el-form-item label="面值类型">
           <el-select v-model="form.valueType" style="width:100%">
-            <el-option v-for="item in giftValueTypeDict.options" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in giftValueTypeDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="适用商品">
           <el-select v-model="form.targetProductType" style="width:100%">
-            <el-option v-for="item in giftTargetProductDict.optionsWithAll" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in giftTargetProductDict.optionsWithAll.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="描述"><el-input v-model="form.description" type="textarea" :rows="3" /></el-form-item>
