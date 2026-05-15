@@ -104,8 +104,10 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="活动编码" v-if="form.actionType === 'ACTIVITY'">
-          <el-input v-model="form.linkValue" placeholder="例如：new_user_gift" />
+        <el-form-item label="活动" v-if="form.actionType === 'ACTIVITY'">
+          <el-select v-model="form.linkValue" clearable filterable placeholder="选择活动" style="width: 100%">
+            <el-option v-for="activity in activities" :key="activity.activityCode" :label="activity.title + '（' + activity.activityCode + '）'" :value="activity.activityCode" />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="礼品包" v-if="form.actionType === 'CLAIM_GIFT'">
@@ -200,6 +202,7 @@ const dialogVisible = ref(false)
 const form = ref({})
 const saving = ref(false)
 const giftPackages = ref([])
+const activities = ref([])
 const bannerActionTypeDict = useDict(DICT_TYPE.BANNER_ACTION_TYPE)
 const bannerClaimLimitDict = useDict(DICT_TYPE.BANNER_CLAIM_LIMIT)
 const bannerLinkTypeDict = useDict(DICT_TYPE.BANNER_LINK_TYPE)
@@ -259,6 +262,7 @@ async function load() {
   try {
     list.value = (await request.get('/admin/banners')) || []
     giftPackages.value = (await request.get('/admin/gift-packages?activeOnly=true')) || []
+    activities.value = (await request.get('/admin/activities')) || []
   } finally {
     loading.value = false
   }
