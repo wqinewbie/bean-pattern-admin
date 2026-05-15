@@ -66,7 +66,11 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="注册时间" width="160" />
+        <el-table-column prop="createdAt" label="注册时间" width="160">
+          <template #default="{row}">
+            {{ formatTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="120" fixed="right">
           <template #default="{row}">
             <el-button size="small" :type="row.status ? 'danger' : 'success'" @click="toggleStatus(row)">
@@ -94,6 +98,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
 import request from '../utils/request'
+import { formatTime } from '../utils/format'
 
 const list = ref([])
 const loading = ref(false)

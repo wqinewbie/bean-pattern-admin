@@ -1,6 +1,52 @@
 <template>
   <div class="bead-library-page">
     <el-tabs v-model="activeTab" type="border-card">
+      <!-- Tab 0: 层级视图 -->
+      <el-tab-pane label="层级视图" name="hierarchy">
+        <div class="tab-content">
+          <div class="hierarchy-container">
+            <div class="hierarchy-left">
+              <div class="section-title">品牌列表</div>
+              <el-menu :default-active="selectedBrandId" @select="handleBrandSelect">
+                <el-menu-item v-for="brand in brands" :key="brand.id" :index="String(brand.id)">
+                  <span>{{ brand.name }}</span>
+                </el-menu-item>
+              </el-menu>
+            </div>
+
+            <div class="hierarchy-middle" v-if="selectedBrandId">
+              <div class="section-title">{{ selectedBrandName }} - 色盘列表</div>
+              <el-table
+                :data="brandPalettes"
+                stripe
+                highlight-current-row
+                @current-change="handlePaletteSelect"
+                style="width: 100%"
+              >
+                <el-table-column prop="name" label="色盘名称" width="200" />
+                <el-table-column prop="remark" label="备注" />
+              </el-table>
+            </div>
+
+            <div class="hierarchy-right" v-if="selectedPalette">
+              <div class="section-title">{{ selectedPalette.name }} - 色码列表</div>
+              <el-table :data="hierarchyPaletteColors" stripe max-height="600">
+                <el-table-column prop="code" label="色号" width="120" />
+                <el-table-column prop="hex" label="HEX" width="100" />
+                <el-table-column label="颜色预览" width="80">
+                  <template #default="{ row }">
+                    <div class="color-preview" :style="{ background: row.hex }"></div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="RGB" width="140">
+                  <template #default="{ row }">{{ row.r }}, {{ row.g }}, {{ row.b }}</template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+        </div>
+      </el-tab-pane>
+
       <!-- Tab 1: 色码库 -->
       <el-tab-pane label="色码库" name="colors">
         <div class="tab-content">
@@ -242,7 +288,14 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 
-const activeTab = ref('colors')
+const activeTab = ref('hierarchy')
+
+// 层级视图相关
+const selectedBrandId = ref(null)
+const selectedBrandName = ref('')
+const brandPalettes = ref([])
+const selectedPalette = ref(null)
+const hierarchyPaletteColors = ref([])
 
 // 色码相关
 const colors = ref([])
@@ -284,6 +337,38 @@ const availableColors = computed(() => {
   const existingCodes = new Set(paletteColors.value.map(c => c.code))
   return colors.value.filter(c => !existingCodes.has(c.code))
 })
+
+// 层级视图操作
+async function handleBrandSelect(brandId) {
+  selectedBrandId.value = brandId
+  const brand = brands.value.find(b => String(b.id) === brandId)
+  selectedBrandName.value = brand ? brand.name : ''
+  selectedPalette.value = null
+  hierarchyPaletteColors.value = []
+
+  try {
+    brandPalettes.value = await request.get(`/admin/bead/brands/${brandId}/palettes`)
+  } catch (error) {
+    ElMessage.error('加载品牌色盘失败')
+    brandPalettes.value = []
+  }
+}
+
+async function handlePaletteSelect(palette) {
+  if (!palette) {
+    selectedPalette.value = null
+    hierarchyPaletteColors.value = []
+    return
+  }
+
+  selectedPalette.value = palette
+  try {
+    hierarchyPaletteColors.value = await request.get(`/admin/bead/palettes/${palette.id}/colors`)
+  } catch (error) {
+    ElMessage.error('加载色盘色码失败')
+    hierarchyPaletteColors.value = []
+  }
+}
 
 // 加载数据
 async function loadColors() {
@@ -646,5 +731,38 @@ onMounted(async () => {
   font-weight: 600;
   margin-bottom: 16px;
   color: #303133;
+}
+
+.hierarchy-container {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px);
+}
+
+.hierarchy-left {
+  width: 200px;
+  border-right: 1px solid #e4e7ed;
+  padding-right: 20px;
+}
+
+.hierarchy-middle {
+  flex: 1;
+  min-width: 300px;
+  border-right: 1px solid #e4e7ed;
+  padding-right: 20px;
+}
+
+.hierarchy-right {
+  flex: 2;
+  min-width: 400px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #303133;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #409eff;
 }
 </style>

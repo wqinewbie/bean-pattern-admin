@@ -101,7 +101,11 @@
             <el-tag type="success">{{ row.continuousDays || 0 }} 天</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="签到时间" min-width="170" />
+        <el-table-column prop="createdAt" label="签到时间" min-width="170">
+          <template #default="{ row }">
+            {{ formatTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="openId" label="OpenID" min-width="220" show-overflow-tooltip />
       </el-table>
 
@@ -124,6 +128,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
+import { formatTime } from '../utils/format'
 
 const config = ref({ continuousDaysRequired: 3, giftPackageCode: '', isActive: true })
 const saving = ref(false)

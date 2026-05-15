@@ -17,7 +17,9 @@
         </el-menu-item-group>
         <el-menu-item-group title="内容管理">
           <el-menu-item index="/users"><el-icon><User/></el-icon>用户管理</el-menu-item>
-          <el-menu-item index="/user-patterns"><el-icon><Tickets/></el-icon>用户图纸</el-menu-item>
+          <el-menu-item index="/user-boxes"><el-icon><Box/></el-icon>用户图纸箱</el-menu-item>
+          <el-menu-item index="/user-drafts"><el-icon><Document/></el-icon>用户草稿箱</el-menu-item>
+          <el-menu-item index="/user-history"><el-icon><Clock/></el-icon>用户时光机</el-menu-item>
           <el-menu-item index="/bead-library"><el-icon><Grid/></el-icon>品牌色盘色码</el-menu-item>
           <el-menu-item index="/banners"><el-icon><FocusRight/></el-icon>Banner管理</el-menu-item>
           <el-menu-item index="/popup"><el-icon><Bell/></el-icon>弹窗管理</el-menu-item>
@@ -36,6 +38,7 @@
           <el-menu-item index="/checkin-config"><el-icon><Calendar/></el-icon>签到配置</el-menu-item>
         </el-menu-item-group>
         <el-menu-item-group title="系统">
+          <el-menu-item index="/dict-manage"><el-icon><List/></el-icon>字典管理</el-menu-item>
           <el-menu-item index="/watermark"><el-icon><Brush/></el-icon>水印配置</el-menu-item>
           <el-menu-item index="/ai-magic-style"><el-icon><MagicStick/></el-icon>AI魔法风格</el-menu-item>
           <el-menu-item index="/admins"><el-icon><Lock/></el-icon>管理员</el-menu-item>

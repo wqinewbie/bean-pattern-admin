@@ -92,6 +92,7 @@ import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
+import { formatTime } from '../utils/format'
 
 const popups = ref([])
 const tableLoading = ref(false)
@@ -173,11 +174,6 @@ const handleDelete = async (id) => {
     ElMessage.success('删除成功')
     loadPopups()
   } catch (e) {}
-}
-
-const formatTime = (time) => {
-  if (!time) return '-'
-  return new Date(time).toLocaleString()
 }
 
 onMounted(() => {

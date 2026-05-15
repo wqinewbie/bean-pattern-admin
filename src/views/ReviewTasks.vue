@@ -36,7 +36,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="reviewRemark" label="审核备注" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="createdAt" label="提交时间" width="180" />
+        <el-table-column prop="createdAt" label="提交时间" width="180">
+          <template #default="{ row }">
+            {{ formatTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="success" :disabled="row.status !== 0" @click="approve(row)">通过</el-button>
@@ -66,6 +70,7 @@ import { ElMessage } from 'element-plus'
 import request from '../utils/request'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
+import { formatTime } from '../utils/format'
 
 const list = ref([])
 const loading = ref(false)

@@ -3,7 +3,7 @@
     <el-card shadow="never" style="margin-bottom:16px">
       <el-select v-model="filterStatus" placeholder="订单状态" clearable @change="load" style="width:160px">
         <el-option
-          v-for="item in orderStatusDict.optionsWithAll"
+          v-for="item in orderStatusDict?.optionsWithAll?.value || []"
           :key="item.value"
           :label="item.label"
           :value="item.value"
@@ -20,13 +20,21 @@
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{row}">
-            <el-tag :type="orderStatusDict.tagType(row.status)" size="small">
-              {{ orderStatusDict.label(row.status) }}
+            <el-tag :type="orderStatusDict?.tagType?.(row.status) || 'info'" size="small">
+              {{ orderStatusDict?.label?.(row.status) || '-' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="paidAt" label="支付时间" width="160" />
-        <el-table-column prop="createdAt" label="创建时间" width="160" />
+        <el-table-column prop="paidAt" label="支付时间" width="160">
+          <template #default="{row}">
+            {{ formatTime(row.paidAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="创建时间" width="160">
+          <template #default="{row}">
+            {{ formatTime(row.createdAt) }}
+          </template>
+        </el-table-column>
       </el-table>
       <div style="margin-top:16px;display:flex;justify-content:flex-end">
         <el-pagination v-model:current-page="page" v-model:page-size="pageSize" :total="total" layout="total, prev, pager, next" @change="load" />
@@ -40,6 +48,7 @@ import { ref, onMounted } from 'vue'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
 import request from '../utils/request'
+import { formatTime } from '../utils/format'
 
 const list = ref([])
 const loading = ref(false)

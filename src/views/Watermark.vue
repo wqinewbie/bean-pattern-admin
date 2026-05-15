@@ -110,21 +110,6 @@
           </span>
         </el-form-item>
 
-        <!-- 透明度 -->
-        <el-form-item label="透明度">
-          <el-slider
-            v-model="form.opacity"
-            :min="0"
-            :max="1"
-            :step="0.05"
-            :format-tooltip="val => (val * 100).toFixed(0) + '%'"
-            style="width: 300px"
-          />
-          <span style="margin-left: 12px; color: #909399">
-            {{ (form.opacity * 100).toFixed(0) }}%
-          </span>
-        </el-form-item>
-
         <el-form-item>
           <el-button type="primary" @click="save" :loading="saving">保存配置</el-button>
           <el-button @click="load">重置</el-button>
@@ -165,8 +150,7 @@ const form = ref({
   color: 'rgba(100,100,100,0.25)',
   angle: -30,
   spacingXRatio: 0.22,
-  spacingYRatio: 0.18,
-  opacity: 0.25
+  spacingYRatio: 0.18
 })
 
 const saving = ref(false)
@@ -183,8 +167,7 @@ async function load() {
         color: res.color ?? 'rgba(100,100,100,0.25)',
         angle: res.angle ?? -30,
         spacingXRatio: res.spacingXRatio ?? 0.22,
-        spacingYRatio: res.spacingYRatio ?? 0.18,
-        opacity: res.opacity ?? 0.25
+        spacingYRatio: res.spacingYRatio ?? 0.18
       }
     }
   } catch (e) {
@@ -203,33 +186,13 @@ async function save() {
       color: form.value.color,
       angle: form.value.angle,
       spacingXRatio: form.value.spacingXRatio,
-      spacingYRatio: form.value.spacingYRatio,
-      opacity: form.value.opacity
+      spacingYRatio: form.value.spacingYRatio
     })
     ElMessage.success('保存成功')
   } catch (e) {
     ElMessage.error('保存失败')
   } finally {
     saving.value = false
-  }
-}
-
-function parseColor(colorStr) {
-  const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
-  if (match) {
-    return {
-      r: parseInt(match[1]),
-      g: parseInt(match[2]),
-      b: parseInt(match[3]),
-      a: match[4] ? parseFloat(match[4]) : 1
-    }
-  }
-  const hex = colorStr.replace('#', '')
-  return {
-    r: parseInt(hex.substring(0, 2), 16),
-    g: parseInt(hex.substring(2, 4), 16),
-    b: parseInt(hex.substring(4, 6), 16),
-    a: 1
   }
 }
 
@@ -263,22 +226,24 @@ function drawPreview() {
     }
   }
 
-  // 绘制水印
-  const color = parseColor(form.value.color)
+  // 绘制水印（与小程序实际渲染逻辑一致）
   const fontSize = Math.round(form.value.fontSize * 0.5) // 预览缩放
   const text = form.value.defaultText || ''
   const angle = form.value.angle || -30
-  const spacingX = Math.floor(width * form.value.spacingXRatio)
-  const spacingY = Math.floor((height - topOffset) * form.value.spacingYRatio)
+  // 使用总高度计算间距，与小程序一致
+  const spacingX = Math.max(90, Math.floor(width * form.value.spacingXRatio))
+  const spacingY = Math.max(60, Math.floor(height * form.value.spacingYRatio))
 
   ctx.font = `${fontSize}px sans-serif`
-  ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},${color.a * form.value.opacity})`
+  // 直接使用配置的颜色，不额外乘以 opacity（opacity 已包含在 color 的 alpha 中）
+  ctx.fillStyle = form.value.color
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
   const angleRad = (angle * Math.PI) / 180
 
-  for (let y = topOffset; y < height + spacingY; y += spacingY) {
+  // 从负间距开始绘制，确保边缘也有水印，与小程序一致
+  for (let y = -spacingY; y < height + spacingY; y += spacingY) {
     for (let x = -spacingX; x < width + spacingX; x += spacingX) {
       ctx.save()
       ctx.translate(x, y)

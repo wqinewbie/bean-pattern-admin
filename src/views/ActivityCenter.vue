@@ -33,7 +33,7 @@
 
         <el-form-item label="活动类型">
           <el-radio-group v-model="form.activityType">
-            <el-radio-button v-for="item in activityTypeDict.options" :key="item.value" :label="item.value">{{ item.label }}</el-radio-button>
+            <el-radio v-for="item in activityTypeDict.options" :key="item.value" :value="item.value">{{ item.label }}</el-radio>
           </el-radio-group>
           <div class="form-help">内容页只承接图文和跳转；礼品活动必须绑定礼品包。</div>
         </el-form-item>

@@ -14,7 +14,11 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="申请时间" width="160" />
+        <el-table-column prop="createdAt" label="申请时间" width="160">
+          <template #default="{row}">
+            {{ formatTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="160" fixed="right">
           <template #default="{row}">
             <template v-if="row.status==='PENDING'">
@@ -33,6 +37,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../utils/request'
+import { formatTime } from '../utils/format'
 
 const list = ref([])
 const loading = ref(false)
