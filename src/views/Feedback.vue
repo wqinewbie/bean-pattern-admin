@@ -6,12 +6,12 @@
         <el-table-column prop="content" label="内容" min-width="200" show-overflow-tooltip />
         <el-table-column prop="category" label="类型" width="90">
           <template #default="{row}">
-            <el-tag size="small" :type="row.category==='BUG'?'danger':''">{{ row.category==='BUG'?'Bug':'建议' }}</el-tag>
+            <el-tag size="small" :type="feedbackCategoryDict.tagType(row.category)">{{ feedbackCategoryDict.label(row.category) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{row}">
-            <el-tag :type="['warning','','success','info'][row.status]" size="small">{{ ['待处理','处理中','已回复','已关闭'][row.status] }}</el-tag>
+            <el-tag :type="feedbackStatusDict.tagType(String(row.status))" size="small">{{ feedbackStatusDict.label(String(row.status)) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="时间" width="160" />
@@ -29,9 +29,13 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
+const feedbackCategoryDict = useDict(DICT_TYPE.FEEDBACK_CATEGORY)
+const feedbackStatusDict = useDict(DICT_TYPE.FEEDBACK_STATUS)
 
 async function load() {
   loading.value = true

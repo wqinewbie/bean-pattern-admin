@@ -100,7 +100,7 @@
 
         <el-form-item label="跳转路径" v-if="form.actionType === 'NAVIGATE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
-            <el-option v-for="item in pageOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in miniappRouteDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
@@ -140,15 +140,13 @@
         <!-- 兼容旧版本字段 -->
         <el-form-item label="跳转类型（旧）" v-if="!form.actionType || form.actionType === 'NONE'">
           <el-select v-model="form.linkType" style="width: 100%">
-            <el-option label="NONE" value="NONE" />
-            <el-option label="PAGE" value="PAGE" />
-            <el-option label="URL" value="URL" />
+            <el-option v-for="item in bannerLinkTypeDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
         <el-form-item label="跳转值（旧）" v-if="(!form.actionType || form.actionType === 'NONE') && form.linkType === 'PAGE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
-            <el-option v-for="item in pageOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in miniappRouteDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
 
@@ -204,26 +202,13 @@ const saving = ref(false)
 const giftPackages = ref([])
 const bannerActionTypeDict = useDict(DICT_TYPE.BANNER_ACTION_TYPE)
 const bannerClaimLimitDict = useDict(DICT_TYPE.BANNER_CLAIM_LIMIT)
+const bannerLinkTypeDict = useDict(DICT_TYPE.BANNER_LINK_TYPE)
+const miniappRouteDict = useDict(DICT_TYPE.MINIAPP_ROUTE_PAGE)
 
 const cropperVisible = ref(false)
 const cropperImg = ref('')
 const cropperRef = ref(null)
 const uploading = ref(false)
-
-const pageOptions = [
-  { label: '首页', value: '/pages/home/home' },
-  { label: '图片转图纸', value: '/pages/convert/convert' },
-  { label: 'AI 生成', value: '/pages/ai-generate/ai-generate' },
-  { label: '我的', value: '/pages/profile/profile' },
-  { label: '生成页', value: '/pages/generate/generate' },
-  { label: '时光机', value: '/pages/history/history' },
-  { label: '图纸箱', value: '/pages/my-patterns/my-patterns' },
-  { label: '画板', value: '/pages/draw/draw' },
-  { label: '生成中', value: '/pages/generating/generating' },
-  { label: '结果页', value: '/pages/result/result' },
-  { label: '专注模式', value: '/pages/focus-mode/focus-mode' },
-  { label: 'VIP', value: '/pages/vip/vip' }
-]
 
 function parseActionConfig(actionConfig) {
   if (!actionConfig) return {}

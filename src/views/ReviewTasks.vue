@@ -64,11 +64,14 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
 const rejectDialogVisible = ref(false)
 const rejectForm = ref({ id: null, reviewRemark: '' })
+const reviewStatusDict = useDict(DICT_TYPE.REVIEW_SUBMISSION_STATUS)
 
 function parseImages(images) {
   try {
@@ -80,15 +83,12 @@ function parseImages(images) {
 }
 
 function statusLabel(status) {
-  if (status === 1) return '已通过'
-  if (status === 2) return '已驳回'
-  return '待审核'
+  const label = reviewStatusDict.label(status)
+  return label !== '-' ? label : '待审核'
 }
 
 function tagType(status) {
-  if (status === 1) return 'success'
-  if (status === 2) return 'danger'
-  return 'warning'
+  return reviewStatusDict.tagType(status)
 }
 
 async function load() {

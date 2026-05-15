@@ -9,24 +9,17 @@
         </el-col>
         <el-col :span="4">
           <el-select v-model="taskType" placeholder="任务类型" clearable @change="load">
-            <el-option label="全部" value="" />
-            <el-option label="图片转图纸" value="BEAD_LOCAL" />
-            <el-option label="AI生成" value="BEAD_AI" />
+            <el-option v-for="item in imageTaskTypeDict.optionsWithAll" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-col>
         <el-col :span="4">
           <el-select v-model="status" placeholder="任务状态" clearable @change="load">
-            <el-option label="全部" value="" />
-            <el-option label="SUCCESS" value="SUCCESS" />
-            <el-option label="CREATED" value="CREATED" />
-            <el-option label="FAILED" value="FAILED" />
+            <el-option v-for="item in imageTaskStatusDict.optionsWithAll" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-col>
         <el-col :span="4">
           <el-select v-model="isSaved" placeholder="是否入图纸箱" clearable @change="load">
-            <el-option label="全部" value="" />
-            <el-option label="已保存" value="1" />
-            <el-option label="未保存" value="0" />
+            <el-option v-for="item in imageTaskSavedDict.optionsWithAll" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-col>
       </el-row>
@@ -44,17 +37,17 @@
         </el-table-column>
         <el-table-column label="类型" width="120">
           <template #default="{row}">
-            <el-tag size="small" type="info">{{ typeText(row.taskType) }}</el-tag>
+            <el-tag size="small" type="info">{{ imageTaskTypeDict.label(row.taskType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="110">
           <template #default="{row}">
-            <el-tag size="small" :type="statusType(row.status)">{{ row.status || '-' }}</el-tag>
+            <el-tag size="small" :type="imageTaskStatusDict.tagType(row.status)">{{ imageTaskStatusDict.label(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="图纸箱" width="110">
           <template #default="{row}">
-            <el-tag size="small" :type="row.isSaved ? 'success' : 'info'">{{ row.isSaved ? '已保存' : '未保存' }}</el-tag>
+            <el-tag size="small" :type="imageTaskSavedDict.tagType(row.isSaved ? '1' : '0')">{{ imageTaskSavedDict.label(row.isSaved ? '1' : '0') }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="预览" width="100">
@@ -90,6 +83,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import request from '../utils/request'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
@@ -102,8 +97,9 @@ const status = ref('')
 const isSaved = ref('')
 let timer = null
 
-const typeText = (t) => ({ BEAD_LOCAL: '图片转图纸', BEAD_AI: 'AI生成' }[t] || t || '-')
-const statusType = (s) => ({ SUCCESS: 'success', FAILED: 'danger', CREATED: 'warning' }[s] || 'info')
+const imageTaskTypeDict = useDict(DICT_TYPE.IMAGE_TASK_TYPE)
+const imageTaskStatusDict = useDict(DICT_TYPE.IMAGE_TASK_STATUS)
+const imageTaskSavedDict = useDict(DICT_TYPE.IMAGE_TASK_SAVED)
 
 async function load() {
   loading.value = true

@@ -15,7 +15,7 @@
         <el-table-column prop="role" label="角色" width="140" />
         <el-table-column label="状态" width="90">
           <template #default="{row}">
-            <el-tag :type="row.status ? 'success' : 'danger'" size="small">{{ row.status ? '正常' : '禁用' }}</el-tag>
+            <el-tag :type="userStatusDict.tagType(row.status ? '1' : '0')" size="small">{{ userStatusDict.label(row.status ? '1' : '0') }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="lastLoginAt" label="最后登录" width="160" />
@@ -45,12 +45,15 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../utils/request'
 import { useAuthStore } from '../stores/auth'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const form = ref({ username: '', nickName: '', password: '' })
 const auth = useAuthStore()
+const userStatusDict = useDict(DICT_TYPE.USER_STATUS)
 const canCreateAdmin = computed(() => String(auth.adminInfo?.role || '').toUpperCase() === 'SUPER_ADMIN')
 
 const MSG_ONLY_SUPER_ADMIN_CREATE = '仅超级管理员可新增管理员'

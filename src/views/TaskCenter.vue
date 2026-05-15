@@ -62,7 +62,7 @@
       <el-form :model="form" label-width="120px">
         <el-form-item label="任务能力类型">
           <el-select v-model="form.handlerType" placeholder="请选择任务能力类型">
-            <el-option v-for="item in handlerOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option v-for="item in taskHandlerDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
           <div style="font-size:12px;color:#999;margin-top:4px">先选择已有能力，再配置这张任务卡片的展示信息。</div>
         </el-form-item>
@@ -125,9 +125,7 @@
 
         <el-form-item label="奖励展示" v-if="showRewardDisplay">
           <el-select v-model="form.rewardType" placeholder="请选择奖励展示类型">
-            <el-option label="AI生成次数" value="AI_COUNT" />
-            <el-option label="会员天数" value="VIP_DAYS" />
-            <el-option label="优惠券" value="COUPON" />
+            <el-option v-for="item in taskRewardDisplayDict.options" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
           <div style="font-size:12px;color:#999;margin-top:4px">仅用于任务卡片展示，不代表最终发奖一定直接到账。</div>
         </el-form-item>
@@ -153,6 +151,8 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const list = ref([])
 const loading = ref(false)
@@ -160,16 +160,9 @@ const dialogVisible = ref(false)
 const form = ref({})
 const giftPackageOptions = ref([])
 
-const handlerOptions = [
-  { label: '签到模块入口（固定模块）', value: 'CHECKIN' },
-  { label: '邀请好友注册', value: 'INVITE_REGISTER' },
-  { label: '邀请好友充值', value: 'INVITE_RECHARGE' },
-  { label: '注册礼包', value: 'REGISTER_GIFT' },
-  { label: '首冲礼包', value: 'FIRST_RECHARGE_GIFT' },
-  { label: '审核型任务', value: 'REVIEW_TASK' },
-  { label: '通用进度任务', value: 'GENERIC_PROGRESS' },
-  { label: '事件任务入口', value: 'EVENT_TASK' }
-]
+const taskHandlerDict = useDict(DICT_TYPE.TASK_HANDLER_TYPE)
+const taskCenterTaskTypeDict = useDict(DICT_TYPE.TASK_CENTER_TASK_TYPE)
+const taskRewardDisplayDict = useDict(DICT_TYPE.TASK_REWARD_DISPLAY_TYPE)
 
 const handlerDefaults = {
   CHECKIN: {
@@ -235,17 +228,16 @@ const taskTypeOptionsByHandler = {
   GENERIC_PROGRESS: ['DAILY', 'ONCE', 'UNLIMITED'],
   EVENT_TASK: ['DAILY', 'ONCE', 'UNLIMITED']
 }
-const taskTypeMeta = {
-  DAILY: { label: '每日任务', value: 'DAILY' },
-  ONCE: { label: '一次性任务', value: 'ONCE' },
-  UNLIMITED: { label: '无限制任务', value: 'UNLIMITED' }
-}
 const requiresGiftPackage = computed(() => giftPackageHandlers.includes(form.value.handlerType))
 const showTargetCount = computed(() => targetCountHandlers.includes(form.value.handlerType))
 const showRewardDisplay = computed(() => !fixedModuleHandlers.includes(form.value.handlerType))
 const availableTaskTypes = computed(() => {
   const handler = form.value.handlerType || 'GENERIC_PROGRESS'
-  return (taskTypeOptionsByHandler[handler] || ['DAILY', 'ONCE', 'UNLIMITED']).map(key => taskTypeMeta[key])
+  const keys = taskTypeOptionsByHandler[handler] || ['DAILY', 'ONCE', 'UNLIMITED']
+  return keys.map(key => {
+    const label = taskCenterTaskTypeDict.label(key)
+    return { value: key, label: label !== '-' ? label : key }
+  })
 })
 const currentHandlerGuide = computed(() => {
   const type = form.value.handlerType || 'GENERIC_PROGRESS'
@@ -457,17 +449,8 @@ async function deleteItem(row) {
 function getHandlerLabel(row) {
   const extra = parseExtraConfig(row.extraConfig)
   const type = extra.handlerType || 'GENERIC_PROGRESS'
-  const map = {
-    'GENERIC_PROGRESS': '通用进度任务',
-    'EVENT_TASK': '事件任务入口',
-    'CHECKIN': '签到模块入口',
-    'INVITE_REGISTER': '邀请好友注册',
-    'INVITE_RECHARGE': '邀请好友充值',
-    'REGISTER_GIFT': '注册礼包',
-    'FIRST_RECHARGE_GIFT': '首冲礼包',
-    'REVIEW_TASK': '审核型任务'
-  }
-  return map[type] || type
+  const label = taskHandlerDict.label(type)
+  return label !== '-' ? label : type
 }
 
 function getGiftPackageLabel(row) {
@@ -494,21 +477,13 @@ function getTargetCountLabel(row) {
 }
 
 function getTaskTypeLabel(type) {
-  const map = {
-    'DAILY': '每日',
-    'ONCE': '一次性',
-    'UNLIMITED': '无限制'
-  }
-  return map[type] || type
+  if (!type) return '-'
+  const label = taskCenterTaskTypeDict.label(type)
+  return label !== '-' ? label : type
 }
 
 function getTaskTypeColor(type) {
-  const map = {
-    'DAILY': 'primary',
-    'ONCE': 'success',
-    'UNLIMITED': 'warning'
-  }
-  return map[type] || ''
+  return taskCenterTaskTypeDict.tagType(type)
 }
 
 watch(() => form.value.handlerType, (next, prev) => {

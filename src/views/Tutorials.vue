@@ -16,7 +16,7 @@
         </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{row}">
-            <el-tag :type="row.status ? 'success' : 'info'" size="small">{{ row.status ? '上线' : '下线' }}</el-tag>
+            <el-tag :type="tutorialStatusDict.tagType(row.status ? '1' : '0')" size="small">{{ tutorialStatusDict.label(row.status ? '1' : '0') }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" fixed="right">
@@ -99,6 +99,8 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 import request from '../utils/request'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const auth = useAuthStore()
 const token = computed(() => auth.token || '')
@@ -111,6 +113,8 @@ const dialogVisible = ref(false)
 const form = ref({})
 const uploading = ref(false)
 const uploadingImage = ref(false)
+
+const tutorialStatusDict = useDict(DICT_TYPE.TUTORIAL_STATUS)
 
 async function load() {
   loading.value = true

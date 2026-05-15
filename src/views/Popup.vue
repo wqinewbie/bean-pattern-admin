@@ -15,8 +15,8 @@
       <el-table-column prop="priority" label="优先级" width="80" />
       <el-table-column prop="enabled" label="状态" width="80">
         <template #default="{ row }">
-          <el-tag :type="row.enabled ? 'success' : 'info'" size="small">
-            {{ row.enabled ? '启用' : '禁用' }}
+          <el-tag :type="popupEnabledDict.tagType(row.enabled === true || row.enabled === 1 ? '1' : '0')" size="small">
+            {{ popupEnabledDict.label(row.enabled === true || row.enabled === 1 ? '1' : '0') }}
           </el-tag>
         </template>
       </el-table-column>
@@ -90,6 +90,8 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 
 const popups = ref([])
 const tableLoading = ref(false)
@@ -110,6 +112,8 @@ const form = ref({
   endTime: null,
   showInterval: 0
 })
+
+const popupEnabledDict = useDict(DICT_TYPE.POPUP_ENABLED)
 
 const loadPopups = async () => {
   tableLoading.value = true
