@@ -147,7 +147,7 @@ function openModal(row) {
     aiQuota: 10,
     price: 0,
     originalPrice: 0,
-    vipPrice: 0,
+    vipPrice: null,
     tag: '',
     sortOrder: 0,
     isActive: true,
