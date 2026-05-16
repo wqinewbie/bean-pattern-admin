@@ -116,14 +116,14 @@
           <el-input-number v-model="form.targetCount" :min="1" />
         </el-form-item>
 
-        <el-form-item label=”奖励礼包” v-if=”requiresGiftPackage”>
-          <el-select v-model=”form.giftPackageCode” filterable placeholder=”请选择礼品包”>
-            <el-option v-for=”item in giftPackageOptions” :key=”item.packageCode” :label=”`${item.name}（${item.packageCode}）`” :value=”item.packageCode” />
+        <el-form-item label="奖励礼包" v-if="requiresGiftPackage">
+          <el-select v-model="form.giftPackageCode" filterable placeholder="请选择礼品包">
+            <el-option v-for="item in giftPackageOptions" :key="item.packageCode" :label="`${item.name}（${item.packageCode}）`" :value="item.packageCode" />
           </el-select>
-          <div style=”font-size:12px;color:#999;margin-top:4px”>礼包会进入用户的”我的礼品包”，由用户自行兑换；除签到入口外，所有奖励型任务必须绑定礼包。奖励展示信息会自动从礼品包内容中获取。</div>
+          <div style="font-size:12px;color:#999;margin-top:4px">礼包会进入用户的"我的礼品包"，由用户自行兑换；除签到入口外，所有奖励型任务必须绑定礼包。奖励展示信息会自动从礼品包内容中获取。</div>
         </el-form-item>
 
-        <el-form-item label=”状态”>
+        <el-form-item label="状态">
           <el-switch v-model="form.isActive" active-text="启用" inactive-text="禁用" />
         </el-form-item>
       </el-form>
