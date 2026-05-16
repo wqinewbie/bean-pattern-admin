@@ -41,13 +41,9 @@
             <el-image :src="form.thumbnailUrl" style="width:120px;height:80px" fit="cover" />
           </div>
           <el-upload
-            :action="imageUploadUrl"
-            :headers="{ Authorization: 'Bearer ' + token }"
             accept="image/*"
             :show-file-list="false"
             :before-upload="beforeImageUpload"
-            :on-success="onImageUploadSuccess"
-            :on-error="onImageUploadError"
           >
             <el-button type="primary" :loading="uploadingImage">
               <el-icon v-if="!uploadingImage"><Upload/></el-icon>
@@ -99,13 +95,13 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 import request from '../utils/request'
+import { uploadImageFile, validateImageFile } from '../utils/imageUpload'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
 
 const auth = useAuthStore()
 const token = computed(() => auth.token || '')
 const uploadUrl = computed(() => (import.meta.env.VITE_API_BASE_URL || '') + '/api/admin/tutorials/video-upload')
-const imageUploadUrl = computed(() => (import.meta.env.VITE_API_BASE_URL || '') + '/api/image/upload')
 
 const list = ref([])
 const loading = ref(false)
@@ -129,34 +125,25 @@ function openModal(row) {
   dialogVisible.value = true
 }
 
-function beforeImageUpload(file) {
-  const isImage = file.type.startsWith('image/')
-  if (!isImage) {
-    ElMessage.error('只能上传图片文件')
-    return false
-  }
-  const isLt2M = file.size / 1024 / 1024 < 2
-  if (!isLt2M) {
-    ElMessage.error('图片大小不能超过 2MB')
-    return false
-  }
+async function beforeImageUpload(file) {
+  if (!validateImageFile(file, { maxSizeMB: 2, acceptTypes: ['image/jpeg', 'image/png'] })) return false
+
   uploadingImage.value = true
-  return true
-}
-
-function onImageUploadSuccess(res) {
-  uploadingImage.value = false
-  if (res.code === 0 && res.data && res.data.originalUrl) {
-    form.value.thumbnailUrl = res.data.originalUrl
-    ElMessage.success('封面上传成功')
-  } else {
-    ElMessage.error(res.message || '上传失败')
+  try {
+    const imageUrl = await uploadImageFile(file, { filename: file.name || 'tutorial-thumbnail.jpg' })
+    if (imageUrl) {
+      form.value.thumbnailUrl = imageUrl
+      ElMessage.success('封面上传成功')
+    } else {
+      ElMessage.error('上传失败')
+    }
+  } catch (e) {
+    ElMessage.error('封面上传失败，请重试')
+  } finally {
+    uploadingImage.value = false
   }
-}
 
-function onImageUploadError() {
-  uploadingImage.value = false
-  ElMessage.error('封面上传失败，请重试')
+  return false
 }
 
 function beforeVideoUpload(file) {

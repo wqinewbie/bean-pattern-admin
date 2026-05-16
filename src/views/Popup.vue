@@ -51,8 +51,22 @@
         <el-form-item label="内容">
           <el-input v-model="form.content" type="textarea" :rows="4" placeholder="弹窗内容" />
         </el-form-item>
-        <el-form-item label="图片URL">
-          <el-input v-model="form.imageUrl" placeholder="可选，配图URL" />
+        <el-form-item label="图片">
+          <div class="image-upload-area">
+            <el-upload
+              class="image-uploader"
+              :show-file-list="false"
+              :before-upload="beforeImageUpload"
+              accept="image/*"
+            >
+              <img v-if="form.imageUrl" :src="form.imageUrl" class="uploaded-image" />
+              <el-icon v-else class="uploader-icon"><Plus /></el-icon>
+            </el-upload>
+            <div class="upload-tip">
+              <p>可选，点击上传配图</p>
+              <p>支持 jpg、png、gif、webp，大小不超过 2MB</p>
+            </div>
+          </div>
         </el-form-item>
         <el-form-item label="按钮文字">
           <el-input v-model="form.buttonText" placeholder="默认'我知道了'" />
@@ -93,6 +107,7 @@ import request from '../utils/request'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
 import { formatTime } from '../utils/format'
+import { uploadImageFile, validateImageFile } from '../utils/imageUpload'
 
 const popups = ref([])
 const tableLoading = ref(false)
@@ -176,10 +191,71 @@ const handleDelete = async (id) => {
   } catch (e) {}
 }
 
+const beforeImageUpload = async (file) => {
+  if (!validateImageFile(file, { maxSizeMB: 2 })) return false
+
+  try {
+    const imageUrl = await uploadImageFile(file, { filename: file.name || 'popup-image.jpg' })
+    if (imageUrl) {
+      form.value.imageUrl = imageUrl
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error('上传失败')
+    }
+  } catch (e) {
+    ElMessage.error('上传失败，请重试')
+  }
+
+  return false
+}
+
 onMounted(() => {
   loadPopups()
 })
 </script>
 
 <style scoped>
+.image-upload-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.image-uploader {
+  width: 120px;
+  height: 80px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s;
+}
+
+.image-uploader:hover {
+  border-color: #409eff;
+}
+
+.uploaded-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploader-icon {
+  font-size: 28px;
+  color: #8c9399;
+}
+
+.upload-tip {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.upload-tip p {
+  margin: 0;
+}
 </style>

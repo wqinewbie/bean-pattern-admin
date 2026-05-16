@@ -44,10 +44,7 @@
         <el-form-item label="图标">
           <el-upload
             class="icon-uploader"
-            :action="uploadUrl"
-            :headers="uploadHeaders"
             :show-file-list="false"
-            :on-success="handleUploadSuccess"
             :before-upload="beforeUpload"
             accept="image/*"
           >
@@ -88,17 +85,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
-import { useAuthStore } from '../stores/auth'
-
-const auth = useAuthStore()
-const uploadUrl = computed(() => `${import.meta.env.VITE_API_BASE_URL || ''}/api/image/upload`)
-const uploadHeaders = computed(() => ({
-  'Authorization': `Bearer ${auth.token}`
-}))
+import { uploadImageFile, validateImageFile } from '../utils/imageUpload'
 
 const styles = ref([])
 const tableLoading = ref(false)
@@ -176,28 +167,22 @@ const handleDelete = async (id) => {
   } catch (e) {}
 }
 
-const beforeUpload = (file) => {
-  const isImage = file.type.startsWith('image/')
-  const isLt2M = file.size / 1024 / 1024 < 2
+const beforeUpload = async (file) => {
+  if (!validateImageFile(file, { maxSizeMB: 2, acceptTypes: ['image/jpeg', 'image/png', 'image/gif'] })) return false
 
-  if (!isImage) {
-    ElMessage.error('只能上传图片文件')
-    return false
+  try {
+    const imageUrl = await uploadImageFile(file, { filename: file.name || 'style-icon.jpg' })
+    if (imageUrl) {
+      form.value.icon = imageUrl
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error('上传失败')
+    }
+  } catch (e) {
+    ElMessage.error('上传失败，请重试')
   }
-  if (!isLt2M) {
-    ElMessage.error('图片大小不能超过 2MB')
-    return false
-  }
-  return true
-}
 
-const handleUploadSuccess = (response) => {
-  if (response.code === 0 && response.data) {
-    form.value.icon = response.data.originalUrl || response.data.imageUrl || response.data.url
-    ElMessage.success('上传成功')
-  } else {
-    ElMessage.error('上传失败')
-  }
+  return false
 }
 
 onMounted(() => {

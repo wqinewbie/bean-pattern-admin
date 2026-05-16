@@ -232,6 +232,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Clock } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import { uploadImageFile } from '../utils/imageUpload'
 import { VueCropper } from 'vue-cropper'
 import 'vue-cropper/dist/index.css'
 import { DICT_TYPE } from '../constants/dict'
@@ -423,12 +424,9 @@ async function confirmCrop() {
       })
     })
 
-    const formData = new FormData()
-    formData.append('file', blob, 'banner.jpg')
-
-    const res = await request.upload('/image/upload', formData)
-    if (res?.url) {
-      form.value.imageUrl = res.url
+    const imageUrl = await uploadImageFile(blob, { filename: 'banner.jpg' })
+    if (imageUrl) {
+      form.value.imageUrl = imageUrl
       cropperVisible.value = false
       ElMessage.success('上传成功')
     } else {
