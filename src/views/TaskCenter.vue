@@ -116,25 +116,14 @@
           <el-input-number v-model="form.targetCount" :min="1" />
         </el-form-item>
 
-        <el-form-item label="奖励礼包" v-if="requiresGiftPackage">
-          <el-select v-model="form.giftPackageCode" filterable placeholder="请选择礼品包">
-            <el-option v-for="item in giftPackageOptions" :key="item.packageCode" :label="`${item.name}（${item.packageCode}）`" :value="item.packageCode" />
+        <el-form-item label=”奖励礼包” v-if=”requiresGiftPackage”>
+          <el-select v-model=”form.giftPackageCode” filterable placeholder=”请选择礼品包”>
+            <el-option v-for=”item in giftPackageOptions” :key=”item.packageCode” :label=”`${item.name}（${item.packageCode}）`” :value=”item.packageCode” />
           </el-select>
-          <div style="font-size:12px;color:#999;margin-top:4px">礼包会进入用户的“我的礼品包”，由用户自行兑换；除签到入口外，所有奖励型任务必须绑定礼包。</div>
+          <div style=”font-size:12px;color:#999;margin-top:4px”>礼包会进入用户的”我的礼品包”，由用户自行兑换；除签到入口外，所有奖励型任务必须绑定礼包。奖励展示信息会自动从礼品包内容中获取。</div>
         </el-form-item>
 
-        <el-form-item label="奖励展示" v-if="showRewardDisplay">
-          <el-select v-model="form.rewardType" placeholder="请选择奖励展示类型">
-            <el-option v-for="item in taskRewardDisplayDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-          <div style="font-size:12px;color:#999;margin-top:4px">仅用于任务卡片展示，不代表最终发奖一定直接到账。</div>
-        </el-form-item>
-
-        <el-form-item label="展示数量" v-if="showRewardDisplay">
-          <el-input-number v-model="form.rewardValue" :min="1" />
-        </el-form-item>
-
-        <el-form-item label="状态">
+        <el-form-item label=”状态”>
           <el-switch v-model="form.isActive" active-text="启用" inactive-text="禁用" />
         </el-form-item>
       </el-form>
@@ -230,7 +219,6 @@ const taskTypeOptionsByHandler = {
 }
 const requiresGiftPackage = computed(() => giftPackageHandlers.includes(form.value.handlerType))
 const showTargetCount = computed(() => targetCountHandlers.includes(form.value.handlerType))
-const showRewardDisplay = computed(() => !fixedModuleHandlers.includes(form.value.handlerType))
 const availableTaskTypes = computed(() => {
   const handler = form.value.handlerType || 'GENERIC_PROGRESS'
   const keys = taskTypeOptionsByHandler[handler] || ['DAILY', 'ONCE', 'UNLIMITED']
@@ -343,8 +331,6 @@ function openModal(row) {
     taskName: '',
     taskType: 'DAILY',
     description: '',
-    rewardType: 'AI_COUNT',
-    rewardValue: 1,
     icon: '',
     sortOrder: 0,
     handlerType: 'GENERIC_PROGRESS',
@@ -391,10 +377,6 @@ async function save() {
     }
     if (showTargetCount.value && (!form.value.targetCount || form.value.targetCount < 1)) {
       ElMessage.error('当前任务能力必须配置大于 0 的达标次数')
-      return
-    }
-    if (showRewardDisplay.value && (!form.value.rewardValue || form.value.rewardValue < 1)) {
-      ElMessage.error('展示数量必须大于 0')
       return
     }
 

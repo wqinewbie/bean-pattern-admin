@@ -39,6 +39,7 @@ const routes = [
       { path: 'watermark', component: () => import('../views/Watermark.vue'), meta: { title: '水印配置' } },
       { path: 'popup', component: () => import('../views/Popup.vue'), meta: { title: '弹窗管理' } },
       { path: 'ai-magic-style', component: () => import('../views/AiMagicStyle.vue'), meta: { title: 'AI魔法风格' } },
+      { path: 'notification-templates', component: () => import('../views/NotificationTemplates.vue'), meta: { title: '消息模板配置' } },
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/' }

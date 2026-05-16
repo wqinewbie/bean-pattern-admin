@@ -10,6 +10,23 @@
     <el-card shadow="never">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="sortOrder" label="排序" width="80" />
+        <el-table-column label="定时上下架" width="280">
+          <template #default="{ row }">
+            <div style="font-size: 12px; line-height: 1.6">
+              <div v-if="row.startAt || row.endAt">
+                <div v-if="row.startAt" style="color: #67c23a">
+                  <el-icon style="vertical-align: middle"><Clock /></el-icon>
+                  开始：{{ formatDateTime(row.startAt) }}
+                </div>
+                <div v-if="row.endAt" style="color: #e6a23c">
+                  <el-icon style="vertical-align: middle"><Clock /></el-icon>
+                  结束：{{ formatDateTime(row.endAt) }}
+                </div>
+              </div>
+              <span v-else style="color: #999">永久有效</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="动作" width="120">
           <template #default="{ row }">
             <el-tag size="small" :type="getActionTypeTagType(row.actionType)">{{ getActionTypeLabel(row.actionType) }}</el-tag>
@@ -78,6 +95,30 @@
           <el-color-picker v-model="form.bgColor" show-alpha />
         </el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sortOrder" :min="1" /></el-form-item>
+
+        <el-form-item label="开始时间">
+          <el-date-picker
+            v-model="form.startAt"
+            type="datetime"
+            placeholder="选择开始时间"
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            style="width: 100%"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">留空表示立即生效</div>
+        </el-form-item>
+
+        <el-form-item label="结束时间">
+          <el-date-picker
+            v-model="form.endAt"
+            type="datetime"
+            placeholder="选择结束时间"
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+            style="width: 100%"
+          />
+          <div style="color: #909399; font-size: 12px; margin-top: 4px">留空表示永久有效</div>
+        </el-form-item>
 
         <el-form-item label="图片">
           <div class="image-upload-area">
@@ -189,7 +230,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Clock } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { VueCropper } from 'vue-cropper'
 import 'vue-cropper/dist/index.css'
@@ -257,6 +298,17 @@ function getBannerCode(row) {
   return parsedConfig.banner_code || parsedConfig.bannerCode || `banner_${row.id}`
 }
 
+function formatDateTime(dateTime) {
+  if (!dateTime) return '-'
+  const date = new Date(dateTime)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}`
+}
+
 async function load() {
   loading.value = true
   try {
@@ -275,7 +327,9 @@ function openModal(row) {
         ...row,
         giftPackageCode: parsedConfig.giftPackageCode || parsedConfig.packageCode || '',
         claimLimit: parsedConfig.limit || 'ONCE',
-        bannerCode: parsedConfig.banner_code || parsedConfig.bannerCode || `banner_${row.id}`
+        bannerCode: parsedConfig.banner_code || parsedConfig.bannerCode || `banner_${row.id}`,
+        startAt: row.startAt || null,
+        endAt: row.endAt || null
       }
     : {
         imageUrl: '',
@@ -287,7 +341,9 @@ function openModal(row) {
         actionConfig: '',
         giftPackageCode: '',
         claimLimit: 'ONCE',
-        bannerCode: ''
+        bannerCode: '',
+        startAt: null,
+        endAt: null
       }
   dialogVisible.value = true
 }

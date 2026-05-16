@@ -25,5 +25,7 @@ export const DICT_TYPE = {
   TASK_REWARD_DISPLAY_TYPE: 'task_reward_display_type',
   REVIEW_SUBMISSION_STATUS: 'review_submission_status',
   FEEDBACK_STATUS: 'feedback_status',
-  FEEDBACK_CATEGORY: 'feedback_category'
+  FEEDBACK_CATEGORY: 'feedback_category',
+  NOTIFICATION_TYPE: 'notification_type',
+  NOTIFICATION_ACTION_TYPE: 'notification_action_type'
 }
