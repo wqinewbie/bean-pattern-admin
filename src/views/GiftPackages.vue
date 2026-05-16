@@ -11,7 +11,8 @@
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column prop="packageCode" label="礼品包编码" width="180" />
-        <el-table-column prop="name" label="名称" min-width="180" />
+        <el-table-column prop="name" label="名称" min-width="160" />
+        <el-table-column prop="expireDays" label="有效期(天)" width="100" />
         <el-table-column prop="description" label="描述" min-width="220" show-overflow-tooltip />
         <el-table-column label="奖励内容" min-width="360">
           <template #default="{ row }">
@@ -61,6 +62,7 @@
         <el-form-item label="名称"><el-input v-model="form.name" placeholder="例如：新人礼包" /></el-form-item>
         <el-form-item label="描述"><el-input v-model="form.description" type="textarea" :rows="2" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sortOrder" :min="0" /></el-form-item>
+        <el-form-item label="有效期(天)"><el-input-number v-model="form.expireDays" :min="1" :max="365" /></el-form-item>
 
         <el-divider content-position="left">礼品明细</el-divider>
         <div class="reward-editor">
@@ -226,7 +228,7 @@ async function load() {
 }
 
 function openModal(row) {
-  form.value = row ? { ...row } : { packageCode: '', name: '', description: '', itemsJson: '[]', sortOrder: 0, status: 1 }
+  form.value = row ? { ...row } : { packageCode: '', name: '', description: '', itemsJson: '[]', sortOrder: 0, expireDays: 30, status: 1 }
   rewardItems.value = parseItems(form.value.itemsJson).map(item => ({ type: item.type || item.gift_type, value: Number(item.value ?? item.gift_value ?? 0) }))
   advancedMode.value = false
   dialogVisible.value = true
