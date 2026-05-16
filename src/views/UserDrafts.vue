@@ -54,8 +54,9 @@
             {{ formatTime(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{row}">
+            <el-button type="primary" size="small" link @click="handlePreview(row)">预览</el-button>
             <el-button type="danger" size="small" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -71,6 +72,8 @@
         />
       </div>
     </el-card>
+
+    <PreviewDialog v-model="previewVisible" :record-id="previewRecordId" type="draft" />
   </div>
 </template>
 
@@ -79,6 +82,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import request from '../utils/request'
 import { formatTime } from '../utils/format'
+import PreviewDialog from '../components/PreviewDialog.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -87,6 +91,8 @@ const page = ref(1)
 const pageSize = ref(10)
 const q = ref('')
 let timer = null
+const previewVisible = ref(false)
+const previewRecordId = ref(null)
 
 async function load() {
   loading.value = true
@@ -120,6 +126,11 @@ function getSourceTypeLabel(type) {
     'BLANK_CANVAS': '空白画板',
   }
   return map[type] || type || '未知'
+}
+
+function handlePreview(row) {
+  previewRecordId.value = row.id
+  previewVisible.value = true
 }
 
 async function handleDelete(row) {
