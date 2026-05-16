@@ -22,6 +22,20 @@
         </el-table-column>
         <el-table-column prop="tag" label="标签" width="100" />
         <el-table-column prop="sortOrder" label="排序" width="80" />
+        <el-table-column label="上架时间" width="170">
+          <template #default="{row}">{{ row.shelfStartTime || '立即上架' }}</template>
+        </el-table-column>
+        <el-table-column label="下架时间" width="170">
+          <template #default="{row}">{{ row.shelfEndTime || '永不下架' }}</template>
+        </el-table-column>
+        <el-table-column prop="purchaseLimit" label="限购次数" width="90">
+          <template #default="{row}">{{ row.purchaseLimit || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="仅会员可购" width="110">
+          <template #default="{row}">
+            <el-tag :type="row.vipOnly ? 'warning' : 'info'" size="small">{{ row.vipOnly ? '是' : '否' }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{row}">
             <el-tag :type="row.isActive ? 'success' : 'info'" size="small">{{ row.isActive ? '启用' : '禁用' }}</el-tag>
@@ -65,6 +79,36 @@
         <el-form-item label="排序">
           <el-input-number v-model="form.sortOrder" :min="0" />
         </el-form-item>
+        <el-form-item label="上架时间">
+          <el-date-picker
+            v-model="form.shelfStartTime"
+            type="datetime"
+            placeholder="选择上架时间（留空立即上架）"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            clearable
+            style="width:100%"
+          />
+          <div style="color:#999;font-size:12px;margin-top:4px">留空则立即上架</div>
+        </el-form-item>
+        <el-form-item label="下架时间">
+          <el-date-picker
+            v-model="form.shelfEndTime"
+            type="datetime"
+            placeholder="选择下架时间（留空永不下架）"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            clearable
+            style="width:100%"
+          />
+          <div style="color:#999;font-size:12px;margin-top:4px">留空则永不下架</div>
+        </el-form-item>
+        <el-form-item label="限购次数">
+          <el-input-number v-model="form.purchaseLimit" :min="0" />
+          <div style="color:#999;font-size:12px;margin-top:4px">每个用户最多购买次数，0或留空不限制</div>
+        </el-form-item>
+        <el-form-item label="仅会员可购">
+          <el-switch v-model="form.vipOnly" />
+          <span style="margin-left:8px;color:#999;font-size:12px">开启后仅已有会员身份的用户可购买此套餐</span>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible=false">取消</el-button>
@@ -106,7 +150,11 @@ function openModal(row) {
     vipPrice: 0,
     tag: '',
     sortOrder: 0,
-    isActive: true
+    isActive: true,
+    shelfStartTime: null,
+    shelfEndTime: null,
+    purchaseLimit: null,
+    vipOnly: false
   }
   dialogVisible.value = true
 }
