@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
