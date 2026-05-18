@@ -64,7 +64,7 @@ async function load() {
     const data = await request.get('/admin/orders', { params: { page: page.value, pageSize: pageSize.value, status: filterStatus.value } })
     list.value = data.list || []
     total.value = data.total || 0
-  } catch {} finally { loading.value = false }
+  } catch (e) { console.error('Orders load failed:', e) } finally { loading.value = false }
 }
 
 onMounted(load)

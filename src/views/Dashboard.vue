@@ -70,7 +70,7 @@ onMounted(async () => {
       stats.value[2].num = data.totalTasks ?? '-'
       stats.value[3].num = data.pendingFeedback ?? '-'
     }
-  } catch {}
+  } catch (e) { console.error('Dashboard load failed:', e) }
 })
 </script>
 

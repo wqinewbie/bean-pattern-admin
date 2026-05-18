@@ -49,42 +49,7 @@
 
       <!-- Tab 1: 色码库 -->
       <el-tab-pane label="色码库" name="colors">
-        <div class="tab-content">
-          <div class="toolbar">
-            <el-input
-              v-model="colorSearch"
-              placeholder="搜索色号或HEX"
-              style="width: 240px"
-              clearable
-              @input="loadColors"
-            >
-              <template #prefix><el-icon><Search /></el-icon></template>
-            </el-input>
-            <el-button type="primary" @click="openColorDialog()">
-              <el-icon><Plus /></el-icon>新增色码
-            </el-button>
-          </div>
-
-          <el-table :data="colors" stripe>
-            <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="code" label="色号" width="140" />
-            <el-table-column prop="hex" label="HEX" width="120" />
-            <el-table-column label="颜色预览" width="100">
-              <template #default="{ row }">
-                <div class="color-preview" :style="{ background: row.hex }"></div>
-              </template>
-            </el-table-column>
-            <el-table-column label="RGB" width="160">
-              <template #default="{ row }">{{ row.r }}, {{ row.g }}, {{ row.b }}</template>
-            </el-table-column>
-            <el-table-column label="操作" width="180">
-              <template #default="{ row }">
-                <el-button size="small" @click="openColorDialog(row)">编辑</el-button>
-                <el-button size="small" type="danger" @click="deleteColor(row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
+        <BeadColorTab ref="colorTabRef" />
       </el-tab-pane>
 
       <!-- Tab 2: 色盘管理 -->
@@ -120,65 +85,9 @@
 
       <!-- Tab 3: 品牌管理 -->
       <el-tab-pane label="品牌管理" name="brands">
-        <div class="tab-content">
-          <div class="toolbar">
-            <el-button type="primary" @click="openBrandDialog()">
-              <el-icon><Plus /></el-icon>新增品牌
-            </el-button>
-          </div>
-
-          <el-table :data="brands" stripe>
-            <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="name" label="品牌名称" />
-            <el-table-column label="操作" width="180">
-              <template #default="{ row }">
-                <el-button size="small" @click="openBrandDialog(row)">编辑</el-button>
-                <el-button size="small" type="danger" @click="deleteBrand(row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
+        <BeadBrandTab ref="brandTabRef" />
       </el-tab-pane>
     </el-tabs>
-
-    <!-- 色码编辑对话框 -->
-    <el-dialog
-      v-model="colorDialogVisible"
-      :title="colorForm.id ? '编辑色码' : '新增色码'"
-      width="500px"
-    >
-      <el-form :model="colorForm" label-width="80px">
-        <el-form-item label="色号" required>
-          <el-input v-model="colorForm.code" placeholder="例如：C001" />
-        </el-form-item>
-        <el-form-item label="HEX" required>
-          <el-input v-model="colorForm.hex" placeholder="#RRGGBB" @blur="normalizeHex">
-            <template #append>
-              <el-button @click="hexToRgb">转RGB</el-button>
-            </template>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="颜色预览">
-          <div class="color-preview-large" :style="{ background: colorForm.hex || '#000000' }"></div>
-        </el-form-item>
-        <el-form-item label="R">
-          <el-input-number v-model="colorForm.r" :min="0" :max="255" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="G">
-          <el-input-number v-model="colorForm.g" :min="0" :max="255" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="B">
-          <el-input-number v-model="colorForm.b" :min="0" :max="255" style="width: 100%" />
-        </el-form-item>
-        <el-form-item>
-          <el-button @click="rgbToHex">RGB转HEX</el-button>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="colorDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveColor">保存</el-button>
-      </template>
-    </el-dialog>
 
     <!-- 色盘编辑对话框 -->
     <el-dialog
@@ -263,32 +172,20 @@
       </div>
     </el-drawer>
 
-    <!-- 品牌编辑对话框 -->
-    <el-dialog
-      v-model="brandDialogVisible"
-      :title="brandForm.id ? '编辑品牌' : '新增品牌'"
-      width="500px"
-    >
-      <el-form :model="brandForm" label-width="80px">
-        <el-form-item label="品牌名称" required>
-          <el-input v-model="brandForm.name" placeholder="例如：Hama" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="brandDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveBrand">保存</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus } from '@element-plus/icons-vue'
+import { Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import BeadColorTab from '../components/BeadColorTab.vue'
+import BeadBrandTab from '../components/BeadBrandTab.vue'
 
 const activeTab = ref('hierarchy')
+const colorTabRef = ref(null)
+const brandTabRef = ref(null)
 
 // 层级视图相关
 const selectedBrandId = ref(null)
@@ -296,19 +193,6 @@ const selectedBrandName = ref('')
 const brandPalettes = ref([])
 const selectedPalette = ref(null)
 const hierarchyPaletteColors = ref([])
-
-// 色码相关
-const colors = ref([])
-const colorSearch = ref('')
-const colorDialogVisible = ref(false)
-const colorForm = reactive({
-  id: null,
-  code: '',
-  hex: '#000000',
-  r: 0,
-  g: 0,
-  b: 0
-})
 
 // 色盘相关
 const palettes = ref([])
@@ -324,18 +208,14 @@ const paletteColors = ref([])
 const selectedColorCodes = ref([])
 const addingColors = ref(false)
 
-// 品牌相关
+// 品牌列表（层级视图需要，加载后供 handleBrandSelect 使用）
 const brands = ref([])
-const brandDialogVisible = ref(false)
-const brandForm = reactive({
-  id: null,
-  name: ''
-})
 
 // 计算属性：可添加到色盘的色码（排除已添加的）
 const availableColors = computed(() => {
   const existingCodes = new Set(paletteColors.value.map(c => c.code))
-  return colors.value.filter(c => !existingCodes.has(c.code))
+  const colorList = colorTabRef.value?.list || []
+  return colorList.filter(c => !existingCodes.has(c.code))
 })
 
 // 层级视图操作
@@ -370,17 +250,6 @@ async function handlePaletteSelect(palette) {
   }
 }
 
-// 加载数据
-async function loadColors() {
-  try {
-    colors.value = await request.get('/admin/bead/colors', {
-      params: { q: colorSearch.value }
-    })
-  } catch (error) {
-    ElMessage.error('加载色码失败')
-  }
-}
-
 async function loadPalettes() {
   try {
     palettes.value = await request.get('/admin/bead/palettes')
@@ -402,110 +271,6 @@ async function loadPaletteColors(paletteId) {
     paletteColors.value = await request.get(`/admin/bead/palettes/${paletteId}/colors`)
   } catch (error) {
     ElMessage.error('加载色盘色码失败')
-  }
-}
-
-// 色码操作
-function openColorDialog(row = null) {
-  if (row) {
-    Object.assign(colorForm, {
-      id: row.id,
-      code: row.code,
-      hex: row.hex || '#000000',
-      r: row.r || 0,
-      g: row.g || 0,
-      b: row.b || 0
-    })
-  } else {
-    Object.assign(colorForm, {
-      id: null,
-      code: '',
-      hex: '#000000',
-      r: 0,
-      g: 0,
-      b: 0
-    })
-  }
-  colorDialogVisible.value = true
-}
-
-function normalizeHex() {
-  let hex = String(colorForm.hex || '').trim().toUpperCase()
-  if (!hex.startsWith('#')) hex = '#' + hex
-  colorForm.hex = hex
-}
-
-function hexToRgb() {
-  normalizeHex()
-  const match = /^#([0-9A-F]{6})$/.exec(colorForm.hex)
-  if (!match) {
-    ElMessage.warning('HEX格式不正确，请输入 #RRGGBB')
-    return
-  }
-  const hex = match[1]
-  colorForm.r = parseInt(hex.slice(0, 2), 16)
-  colorForm.g = parseInt(hex.slice(2, 4), 16)
-  colorForm.b = parseInt(hex.slice(4, 6), 16)
-}
-
-function rgbToHex() {
-  const r = Math.max(0, Math.min(255, colorForm.r || 0))
-  const g = Math.max(0, Math.min(255, colorForm.g || 0))
-  const b = Math.max(0, Math.min(255, colorForm.b || 0))
-  colorForm.hex = '#' + [r, g, b]
-    .map(n => n.toString(16).padStart(2, '0'))
-    .join('')
-    .toUpperCase()
-}
-
-async function saveColor() {
-  if (!colorForm.code.trim()) {
-    ElMessage.warning('请输入色号')
-    return
-  }
-  normalizeHex()
-
-  try {
-    const payload = {
-      code: colorForm.code.trim(),
-      hex: colorForm.hex.toUpperCase(),
-      r: colorForm.r || 0,
-      g: colorForm.g || 0,
-      b: colorForm.b || 0
-    }
-
-    if (colorForm.id) {
-      await request.put(`/admin/bead/colors/${colorForm.id}`, payload)
-      ElMessage.success('更新成功')
-    } else {
-      await request.post('/admin/bead/colors', payload)
-      ElMessage.success('新增成功')
-    }
-
-    colorDialogVisible.value = false
-    await loadColors()
-
-    // 如果色盘详情打开，刷新色盘色码
-    if (currentPalette.value) {
-      await loadPaletteColors(currentPalette.value.id)
-    }
-  } catch (error) {
-    ElMessage.error('保存失败')
-  }
-}
-
-async function deleteColor(row) {
-  try {
-    await ElMessageBox.confirm(`确认删除色码「${row.code}」？`, '提示', {
-      type: 'warning'
-    })
-    await request.delete(`/admin/bead/colors/${row.id}`)
-    ElMessage.success('删除成功')
-    await loadColors()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-    }
   }
 }
 
@@ -620,52 +385,6 @@ async function removeColorFromPalette(row) {
   }
 }
 
-// 品牌操作
-function openBrandDialog(row = null) {
-  if (row) {
-    Object.assign(brandForm, {
-      id: row.id,
-      name: row.name
-    })
-  } else {
-    Object.assign(brandForm, {
-      id: null,
-      name: ''
-    })
-  }
-  brandDialogVisible.value = true
-}
-
-async function saveBrand() {
-  if (!brandForm.name.trim()) {
-    ElMessage.warning('请输入品牌名称')
-    return
-  }
-
-  try {
-    const payload = { name: brandForm.name.trim() }
-
-    if (brandForm.id) {
-      await request.put(`/admin/bead/brands/${brandForm.id}`, payload)
-      ElMessage.success('更新成功')
-    } else {
-      await request.post('/admin/bead/brands', payload)
-      ElMessage.success('新增成功')
-    }
-
-    brandDialogVisible.value = false
-    await loadBrands()
-  } catch (error) {
-    ElMessage.error('保存失败')
-  }
-}
-
-async function deleteBrand(row) {
-  try {
-    await ElMessageBox.confirm(`确认删除品牌「${row.name}」？`, '提示', {
-      type: 'warning'
-    })
-    await request.delete(`/admin/bead/brands/${row.id}`)
     ElMessage.success('删除成功')
     await loadBrands()
   } catch (error) {
@@ -677,7 +396,7 @@ async function deleteBrand(row) {
 
 // 初始化
 onMounted(async () => {
-  await Promise.all([loadColors(), loadPalettes(), loadBrands()])
+  await Promise.all([loadPalettes(), loadBrands()])
 })
 </script>
 

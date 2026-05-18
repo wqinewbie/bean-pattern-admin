@@ -99,6 +99,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import request from '../utils/request'
 import { formatTime } from '../utils/format'
+import { getSourceTypeLabel } from '../utils/labels'
 
 const list = ref([])
 const loading = ref(false)
@@ -131,15 +132,6 @@ function onSearchInput() {
     page.value = 1
     load()
   }, 350)
-}
-
-function getSourceTypeLabel(type) {
-  const map = {
-    'AI_GENERATE': 'AI生成',
-    'IMAGE_CONVERT': '图片转换',
-    'BLANK_CANVAS': '空白画板',
-  }
-  return map[type] || type || '未知'
 }
 
 async function handleDelete(row) {

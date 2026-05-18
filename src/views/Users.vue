@@ -93,18 +93,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
+import { usePagination } from '../composables/usePagination'
 import request from '../utils/request'
 import { formatTime } from '../utils/format'
 
 const list = ref([])
-const loading = ref(false)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(10)
 const q = ref('')
 const filterVip = ref('')
 const filterStatus = ref('')
@@ -112,18 +109,13 @@ const vipStatusDict = useDict(DICT_TYPE.VIP_STATUS)
 const userStatusDict = useDict(DICT_TYPE.USER_STATUS)
 let searchTimer = null
 
-async function load() {
-  loading.value = true
-  try {
-    const data = await request.get('/admin/users', {
-      params: { page: page.value, pageSize: pageSize.value, q: q.value, vipLevel: filterVip.value, status: filterStatus.value }
-    })
-    list.value = data.list || []
-    total.value = data.total || 0
-  } catch {} finally {
-    loading.value = false
-  }
-}
+const { page, pageSize, total, loading, load, onPageChange, onSizeChange } = usePagination(async () => {
+  const data = await request.get('/admin/users', {
+    params: { page: page.value, pageSize: pageSize.value, q: q.value, vipLevel: filterVip.value, status: filterStatus.value }
+  })
+  list.value = data.list || []
+  total.value = data.total || 0
+})
 
 function handleSearch() {
   clearTimeout(searchTimer)
