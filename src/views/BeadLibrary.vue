@@ -385,15 +385,6 @@ async function removeColorFromPalette(row) {
   }
 }
 
-    ElMessage.success('删除成功')
-    await loadBrands()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-    }
-  }
-}
-
 // 初始化
 onMounted(async () => {
   await Promise.all([loadPalettes(), loadBrands()])
