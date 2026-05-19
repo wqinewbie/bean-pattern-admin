@@ -6,6 +6,9 @@
     <el-card shadow="never">
       <el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="packageCode" label="套餐代码" width="120" />
+        <el-table-column prop="midasProductId" label="虚拟支付道具ID" width="150">
+          <template #default="{row}">{{ row.midasProductId || row.packageCode }}</template>
+        </el-table-column>
         <el-table-column prop="packageName" label="套餐名称" min-width="150" />
         <el-table-column v-if="type==='vip'" prop="durationDays" label="有效天数" width="100" />
         <el-table-column v-if="type==='vip'" prop="aiQuotaGift" label="赠送AI次数" width="120" />
@@ -61,6 +64,9 @@
         </el-form-item>
         <el-form-item label="套餐名称">
           <el-input v-model="form.packageName" :placeholder="namePlaceholder" />
+        </el-form-item>
+        <el-form-item label="虚拟支付道具ID">
+          <el-input v-model="form.midasProductId" placeholder="需与微信虚拟支付后台道具ID一致，留空默认使用套餐代码" />
         </el-form-item>
         <el-form-item v-if="type==='vip'" label="有效天数">
           <el-input-number v-model="form.durationDays" :min="1" :max="365" />
@@ -160,6 +166,7 @@ const form = ref({})
 
 const defaultForm = computed(() => isVip.value ? {
   packageCode: '',
+  midasProductId: '',
   packageName: '',
   durationDays: 30,
   price: 0,
@@ -174,6 +181,7 @@ const defaultForm = computed(() => isVip.value ? {
   vipOnly: false
 } : {
   packageCode: '',
+  midasProductId: '',
   packageName: '',
   aiQuota: 10,
   price: 0,
