@@ -71,10 +71,13 @@
             {{ formatTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" width="200" fixed="right">
           <template #default="{row}">
             <el-button size="small" :type="row.status ? 'danger' : 'success'" @click="toggleStatus(row)">
               {{ row.status ? '禁用' : '启用' }}
+            </el-button>
+            <el-button size="small" type="danger" plain @click="clearUserData(row)">
+              清除数据
             </el-button>
           </template>
         </el-table-column>
@@ -127,6 +130,17 @@ async function toggleStatus(row) {
   await ElMessageBox.confirm(`确定要${action}用户「${row.nickName}」吗？`, '提示', { type: 'warning' })
   await request.post(`/admin/users/${row.id}/toggle-status`)
   ElMessage.success(`已${action}`)
+  load()
+}
+
+async function clearUserData(row) {
+  await ElMessageBox.confirm(
+    `确定要清除用户「${row.nickName}」(ID: ${row.id}) 的全部数据吗？此操作不可逆，将删除该用户的所有盒子、草稿、历史、订单、签到、分享等全部数据并删除用户账号！`,
+    '危险操作警告',
+    { type: 'error', confirmButtonText: '确定清除', confirmButtonClass: 'el-button--danger' }
+  )
+  await request.delete(`/admin/users/${row.id}/clear-data`)
+  ElMessage.success('已清除用户全部数据')
   load()
 }
 
