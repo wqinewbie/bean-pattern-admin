@@ -199,7 +199,8 @@ const defaultForm = computed(() => isVip.value ? {
 async function load() {
   loading.value = true
   try {
-    list.value = await request.get(apiBase.value) || []
+    const data = await request.get(apiBase.value) || []
+    list.value = data.map(normalizePackage)
   } catch (e) {
     console.error(e)
   } finally {
@@ -208,22 +209,33 @@ async function load() {
 }
 
 function openModal(row) {
-  form.value = row ? { ...row } : { ...defaultForm.value }
+  form.value = row ? { ...normalizePackage(row) } : { ...defaultForm.value }
   dialogVisible.value = true
 }
 
 async function save() {
   try {
+    const payload = {
+      ...form.value,
+      midasProductId: (form.value.midasProductId || '').trim()
+    }
     if (form.value.id) {
-      await request.put(`${apiBase.value}/${form.value.id}`, form.value)
+      await request.put(`${apiBase.value}/${form.value.id}`, payload)
     } else {
-      await request.post(apiBase.value, form.value)
+      await request.post(apiBase.value, payload)
     }
     ElMessage.success('保存成功')
     dialogVisible.value = false
-    load()
+    await load()
   } catch (e) {
     console.error(e)
+  }
+}
+
+function normalizePackage(item) {
+  return {
+    ...item,
+    midasProductId: item.midasProductId ?? item.midas_product_id ?? ''
   }
 }
 
