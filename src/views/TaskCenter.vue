@@ -188,7 +188,7 @@ const handlerDefaults = {
     taskCode: 'review_task',
     taskName: '社交平台发帖',
     description: '按要求上传凭证截图，审核通过后发放奖励。',
-    taskType: 'ONCE'
+    taskType: 'UNLIMITED'
   },
   GENERIC_PROGRESS: {
     taskCode: 'generic_progress_task',
@@ -213,7 +213,7 @@ const taskTypeOptionsByHandler = {
   INVITE_RECHARGE: ['UNLIMITED'],
   REGISTER_GIFT: ['ONCE'],
   FIRST_RECHARGE_GIFT: ['ONCE'],
-  REVIEW_TASK: ['ONCE'],
+  REVIEW_TASK: ['UNLIMITED', 'ONCE'],
   GENERIC_PROGRESS: ['DAILY', 'ONCE', 'UNLIMITED'],
   EVENT_TASK: ['DAILY', 'ONCE', 'UNLIMITED']
 }
