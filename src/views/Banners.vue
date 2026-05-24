@@ -102,7 +102,7 @@
             type="datetime"
             placeholder="选择开始时间"
             format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DDTHH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
             style="width: 100%"
           />
           <div style="color: #909399; font-size: 12px; margin-top: 4px">留空表示立即生效</div>
@@ -114,7 +114,7 @@
             type="datetime"
             placeholder="选择结束时间"
             format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DDTHH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
             style="width: 100%"
           />
           <div style="color: #909399; font-size: 12px; margin-top: 4px">留空表示永久有效</div>
@@ -141,6 +141,7 @@
 
         <el-form-item label="跳转路径" v-if="form.actionType === 'NAVIGATE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
+            <el-option label="次卡购买页" value="/pages/vip/vip?tab=cards" />
             <el-option v-for="item in miniappRouteDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
@@ -189,6 +190,7 @@
 
         <el-form-item label="跳转值（旧）" v-if="(!form.actionType || form.actionType === 'NONE') && form.linkType === 'PAGE'">
           <el-select v-model="form.linkValue" filterable allow-create default-first-option style="width: 100%">
+            <el-option label="次卡购买页" value="/pages/vip/vip?tab=cards" />
             <el-option v-for="item in miniappRouteDict.options.value" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>

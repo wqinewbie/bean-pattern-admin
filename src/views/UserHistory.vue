@@ -52,8 +52,14 @@
         </el-table-column>
         <el-table-column label="预览" width="100">
           <template #default="{row}">
+            <PatternThumb
+              v-if="row.mappedPixelData"
+              :mapped-pixel-data="row.mappedPixelData"
+              :image-url="row.sourceUrl"
+              @click="handlePreview(row)"
+            />
             <el-image
-              v-if="row.sourceUrl"
+              v-else-if="row.sourceUrl"
               :src="row.sourceUrl"
               style="width:46px;height:46px;border-radius:8px"
               fit="cover"
@@ -91,6 +97,8 @@
         />
       </div>
     </el-card>
+
+    <PreviewDialog v-model="previewVisible" :record-id="previewRecordId" type="history" />
   </div>
 </template>
 
@@ -100,6 +108,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import request from '../utils/request'
 import { formatTime } from '../utils/format'
 import { getSourceTypeLabel } from '../utils/labels'
+import PreviewDialog from '../components/PreviewDialog.vue'
+import PatternThumb from '../components/PatternThumb.vue'
 
 const list = ref([])
 const loading = ref(false)
@@ -108,6 +118,8 @@ const page = ref(1)
 const pageSize = ref(10)
 const q = ref('')
 let timer = null
+const previewVisible = ref(false)
+const previewRecordId = ref(null)
 
 async function load() {
   loading.value = true
@@ -132,6 +144,11 @@ function onSearchInput() {
     page.value = 1
     load()
   }, 350)
+}
+
+function handlePreview(row) {
+  previewRecordId.value = row.id
+  previewVisible.value = true
 }
 
 async function handleDelete(row) {

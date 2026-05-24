@@ -44,6 +44,24 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column label="预览" width="100">
+          <template #default="{row}">
+            <PatternThumb
+              v-if="row.mappedPixelData"
+              :mapped-pixel-data="row.mappedPixelData"
+              :image-url="row.coverUrl || row.sourceUrl"
+            />
+            <el-image
+              v-else-if="row.coverUrl || row.sourceUrl"
+              :src="row.coverUrl || row.sourceUrl"
+              style="width:46px;height:46px;border-radius:8px"
+              fit="cover"
+              :preview-src-list="[row.coverUrl || row.sourceUrl]"
+              preview-teleported
+            />
+            <span v-else style="color:#8b90a7">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="180">
           <template #default="{row}">
             {{ formatTime(row.createdAt) }}
@@ -84,6 +102,7 @@ import request from '../utils/request'
 import { formatTime } from '../utils/format'
 import { getSourceTypeLabel } from '../utils/labels'
 import PreviewDialog from '../components/PreviewDialog.vue'
+import PatternThumb from '../components/PatternThumb.vue'
 
 const list = ref([])
 const loading = ref(false)

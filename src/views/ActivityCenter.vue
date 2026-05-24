@@ -47,10 +47,10 @@
         <el-form-item label="操作按钮文案"><el-input v-model="form.buttonText" placeholder="例如：立即领取、查看详情" /></el-form-item>
         <el-form-item label="按钮动作">
           <el-select v-model="form.buttonAction" placeholder="请选择按钮动作">
-            <el-option v-for="item in activityButtonActionDict.options.value" :key="item.value" :label="item.label" :value="item.value" :disabled="item.value === 'CLAIM' && form.activityType !== 'GIFT'" />
+            <el-option v-for="item in activityButtonActionDict.options.value" :key="item.value" :label="item.label" :value="item.value" :disabled="(item.value === 'CLAIM' && form.activityType !== 'GIFT') || item.value === 'EXTERNAL'" />
           </el-select>
         </el-form-item>
-        <el-form-item label="跳转URL" v-if="form.buttonAction === 'NAVIGATE' || form.buttonAction === 'EXTERNAL'"><el-input v-model="form.buttonUrl" placeholder="例如：/pages/vip/vip 或 https://example.com" /></el-form-item>
+        <el-form-item label="跳转URL" v-if="form.buttonAction === 'NAVIGATE'"><el-input v-model="form.buttonUrl" placeholder="例如：/pages/vip/vip" /></el-form-item>
 
         <el-form-item label="活动详情页">
           <div style="border: 1px solid #dcdfe6; border-radius: 4px; width:100%;">
@@ -124,6 +124,9 @@ async function save() {
     if (!form.value.title?.trim()) return ElMessage.error('活动标题不能为空')
     if (form.value.activityType === 'GIFT' && !form.value.giftPackageCode) return ElMessage.error('礼品活动必须绑定礼品包')
     if (form.value.buttonAction === 'CLAIM' && form.value.activityType !== 'GIFT') return ElMessage.error('领取按钮只能用于礼品活动')
+    if (form.value.buttonAction === 'EXTERNAL') return ElMessage.error('活动跳转URL仅支持小程序内部页面路径')
+    if (form.value.buttonAction === 'NAVIGATE' && !form.value.buttonUrl?.trim()) return ElMessage.error('跳转URL不能为空')
+    if (form.value.buttonAction === 'NAVIGATE' && !form.value.buttonUrl.trim().startsWith('/pages/')) return ElMessage.error('活动跳转URL仅支持小程序内部页面路径')
     const payload = { ...form.value, activityCode: form.value.activityCode.trim(), title: form.value.title.trim(), pageType: 'RICH_TEXT' }
     if (payload.activityType !== 'GIFT') { payload.giftPackageCode = null; payload.totalQuota = 0; payload.remainQuota = 0; payload.limitType = 'UNLIMITED' }
     if (payload.id) await request.put(`/admin/activities/${payload.id}`, payload)

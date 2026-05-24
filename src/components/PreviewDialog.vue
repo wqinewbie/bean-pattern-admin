@@ -78,7 +78,7 @@ import { deriveFromMapped, renderResult, renderPattern } from '../utils/patternR
 const props = defineProps({
   modelValue: Boolean,
   recordId: [Number, String],
-  type: { type: String, default: 'box' } // 'box' | 'draft'
+  type: { type: String, default: 'box' } // 'box' | 'draft' | 'history'
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -125,9 +125,12 @@ async function loadDetail() {
   if (!props.recordId) { loadError.value = '记录ID无效'; return }
   loading.value = true
   loadError.value = ''
-  const apiPath = props.type === 'box'
-    ? `/admin/user-boxes/${props.recordId}`
-    : `/admin/user-drafts/${props.recordId}`
+  const apiMap = {
+    box: `/admin/user-boxes/${props.recordId}`,
+    draft: `/admin/user-drafts/${props.recordId}`,
+    history: `/admin/user-history/${props.recordId}`
+  }
+  const apiPath = apiMap[props.type] || apiMap.box
   try {
     const data = await request.get(apiPath)
     detail.value = data || {}
