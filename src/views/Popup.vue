@@ -165,7 +165,11 @@ const handleAdd = () => {
 
 const handleEdit = (row) => {
   isEdit.value = true
-  form.value = { ...row }
+  form.value = {
+    ...row,
+    startTime: normalizeDateTime(row.startTime),
+    endTime: normalizeDateTime(row.endTime)
+  }
   dialogVisible.value = true
 }
 
@@ -173,7 +177,11 @@ const handleSave = async () => {
   if (saveLoading.value) return
   saveLoading.value = true
   try {
-    await request.post('/admin/popup/save', form.value)
+    await request.post('/admin/popup/save', {
+      ...form.value,
+      startTime: normalizeDateTime(form.value.startTime),
+      endTime: normalizeDateTime(form.value.endTime)
+    })
     ElMessage.success('保存成功')
     dialogVisible.value = false
     loadPopups()
@@ -209,6 +217,21 @@ const beforeImageUpload = async (file) => {
   }
 
   return false
+}
+
+function normalizeDateTime(value) {
+  if (!value) return null
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/)
+    if (!match) return null
+    const [, year, month, day, hour = '00', minute = '00', second = '00'] = match
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
 onMounted(() => {

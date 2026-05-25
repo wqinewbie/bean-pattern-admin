@@ -217,7 +217,9 @@ async function save() {
   try {
     const payload = {
       ...form.value,
-      midasProductId: (form.value.midasProductId || '').trim()
+      midasProductId: (form.value.midasProductId || '').trim(),
+      shelfStartTime: normalizeDateTime(form.value.shelfStartTime),
+      shelfEndTime: normalizeDateTime(form.value.shelfEndTime)
     }
     if (form.value.id) {
       await request.put(`${apiBase.value}/${form.value.id}`, payload)
@@ -235,8 +237,25 @@ async function save() {
 function normalizePackage(item) {
   return {
     ...item,
-    midasProductId: item.midasProductId ?? item.midas_product_id ?? ''
+    midasProductId: item.midasProductId ?? item.midas_product_id ?? '',
+    shelfStartTime: normalizeDateTime(item.shelfStartTime),
+    shelfEndTime: normalizeDateTime(item.shelfEndTime)
   }
+}
+
+function normalizeDateTime(value) {
+  if (!value) return null
+  if (typeof value === 'string') {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/)
+    if (!match) return null
+    const [, year, month, day, hour = '00', minute = '00', second = '00'] = match
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
 async function toggleStatus(row) {
