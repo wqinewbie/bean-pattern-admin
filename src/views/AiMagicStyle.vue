@@ -17,6 +17,11 @@
         </template>
       </el-table-column>
       <el-table-column prop="tag" label="标签" width="120" />
+      <el-table-column prop="modelKey" label="模型Key" width="150">
+        <template #default="{ row }">
+          <span>{{ row.modelKey || '默认' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
       <el-table-column prop="sortOrder" label="排序" width="80" />
       <el-table-column prop="enabled" label="状态" width="80">
@@ -68,6 +73,12 @@
             正式版AI服务会使用此模板生成图片
           </div>
         </el-form-item>
+        <el-form-item label="模型Key">
+          <el-input v-model="form.modelKey" placeholder="如：seadance-2.0；留空使用默认模型" />
+          <div style="color: #999; font-size: 12px; margin-top: 4px;">
+            对应 Python ai-service 配置中的 models key
+          </div>
+        </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="form.sortOrder" :min="0" :max="999" />
           <span style="margin-left: 8px; color: #999">数字越小越靠前</span>
@@ -103,6 +114,7 @@ const form = ref({
   tag: '',
   description: '',
   promptTemplate: '',
+  modelKey: '',
   sortOrder: 0,
   enabled: 1
 })
@@ -127,6 +139,7 @@ const handleAdd = () => {
     tag: '',
     description: '',
     promptTemplate: '',
+    modelKey: '',
     sortOrder: 0,
     enabled: 1
   }
