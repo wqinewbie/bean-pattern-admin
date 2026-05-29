@@ -52,15 +52,6 @@
             <span v-else style="color: #999">-</span>
           </template>
         </el-table-column>
-        <el-table-column label="背景色" width="90">
-          <template #default="{ row }">
-            <span
-              v-if="row.bgColor"
-              :style="{ display: 'inline-block', width: '24px', height: '24px', background: row.bgColor, borderRadius: '4px', border: '1px solid #ddd' }"
-            ></span>
-            <span v-else style="color: #999">默认</span>
-          </template>
-        </el-table-column>
         <el-table-column label="图片" width="100">
           <template #default="{ row }">
             <el-image
@@ -91,9 +82,6 @@
 
     <el-dialog v-model="dialogVisible" :title="form.id ? '编辑 Banner' : '新建 Banner'" width="700px">
       <el-form :model="form" label-width="100px">
-        <el-form-item label="背景色">
-          <el-color-picker v-model="form.bgColor" show-alpha />
-        </el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sortOrder" :min="1" /></el-form-item>
 
         <el-form-item label="开始时间">
@@ -336,7 +324,6 @@ function openModal(row) {
       }
     : {
         imageUrl: '',
-        bgColor: '',
         sortOrder: 1,
         linkType: 'NONE',
         linkValue: '',
