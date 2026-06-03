@@ -75,7 +75,7 @@
             </el-button>
           </el-upload>
           <div style="margin-top:8px;color:#909399;font-size:12px">
-            支持 mp4、mov 等视频格式，建议小于 100MB
+            支持横屏/竖屏 mp4、mov 等视频格式，建议小于 100MB
           </div>
         </el-form-item>
         <el-form-item label="排序">

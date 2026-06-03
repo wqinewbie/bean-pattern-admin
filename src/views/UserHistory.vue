@@ -80,8 +80,9 @@
             <span v-else style="color:#67c23a">永久</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{row}">
+            <el-button type="primary" size="small" link @click="handlePreview(row)">预览</el-button>
             <el-button type="danger" size="small" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>

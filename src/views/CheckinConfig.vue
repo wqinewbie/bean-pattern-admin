@@ -14,6 +14,7 @@
       <el-form :model="config" label-width="150px" style="max-width:720px;">
         <el-form-item label="签到功能状态">
           <el-switch v-model="config.isActive" active-text="启用" inactive-text="禁用" />
+          <div class="form-help">禁用后，小程序任务面板会隐藏签到入口，用户无法签到或领取签到奖励；历史记录和统计不受影响。</div>
         </el-form-item>
 
         <el-form-item label="连续签到天数">
@@ -150,6 +151,17 @@ function userInitial(row) {
   return String(name).slice(0, 1)
 }
 
+function normalizeBool(value, defaultValue = true) {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value !== 0
+  if (typeof value === 'string') {
+    const text = value.trim().toLowerCase()
+    if (['1', 'true', 'yes', 'on'].includes(text)) return true
+    if (['0', 'false', 'no', 'off'].includes(text)) return false
+  }
+  return defaultValue
+}
+
 async function loadConfig() {
   try {
     const data = await request.get('/admin/checkin/config')
@@ -157,7 +169,7 @@ async function loadConfig() {
       config.value = {
         continuousDaysRequired: data.continuousDaysRequired || 3,
         giftPackageCode: data.giftPackageCode || '',
-        isActive: typeof data.isActive === 'boolean' ? data.isActive : true,
+        isActive: normalizeBool(data.isActive, true),
         id: data.id
       }
     }
