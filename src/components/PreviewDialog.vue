@@ -62,7 +62,8 @@
 
       <div v-show="isImageTab" class="preview-image-wrap">
         <img
-          v-if="activeImageUrl"
+          v-if="activeImageUrl && !imageLoadError"
+          :key="activeImageUrl"
           :src="activeImageUrl"
           class="preview-image"
           @error="onImageError"
@@ -100,14 +101,26 @@ const colorPalette = ref([])
 const activeTab = ref('result')
 const previewCanvas = ref(null)
 const canvasDisplayWidth = ref(600)
+const imageLoadError = ref(false)
 
 watch(() => props.modelValue, (val) => { visible.value = val })
 watch(visible, (val) => { emit('update:modelValue', val) })
 
-const originalUrl = computed(() => detail.value.sourceUrl || detail.value.coverUrl || '')
+const USER_ORIGINAL_FIELDS = ['aiInputImageUrl', 'originalImageUrl', 'imageUrl']
+const AI_ORIGINAL_FIELDS = ['aiGeneratedImageUrl', 'rawAiImageUrl', 'aiRefinedImageUrl', 'aiImageUrl']
+const DEFAULT_ORIGINAL_FIELDS = ['sourceUrl', 'coverUrl']
+
+function pickUrl(record, fields) {
+  if (!record) return ''
+  return fields
+    .map(field => record[field])
+    .find(value => typeof value === 'string' && value.trim()) || ''
+}
+
+const originalUrl = computed(() => pickUrl(detail.value, DEFAULT_ORIGINAL_FIELDS))
 const isAiDetail = computed(() => !!(detail.value.taskId || detail.value.aiInputImageUrl || detail.value.aiGeneratedImageUrl || detail.value.aiRefinedImageUrl || String(detail.value.sourceType || '').toUpperCase().includes('AI')))
-const userOriginalUrl = computed(() => isAiDetail.value ? (detail.value.aiInputImageUrl || '') : '')
-const aiGeneratedOriginalUrl = computed(() => detail.value.aiGeneratedImageUrl || detail.value.aiRefinedImageUrl || '')
+const userOriginalUrl = computed(() => isAiDetail.value ? pickUrl(detail.value, USER_ORIGINAL_FIELDS) : '')
+const aiGeneratedOriginalUrl = computed(() => pickUrl(detail.value, AI_ORIGINAL_FIELDS))
 const hasPatternData = computed(() => gridData.value.length > 0 && colorPalette.value.length > 0)
 const isImageTab = computed(() => activeTab.value === 'original' || activeTab.value === 'userOriginal' || activeTab.value === 'aiOriginal')
 const activeImageUrl = computed(() => {
@@ -161,11 +174,14 @@ async function loadDetail() {
     gridData.value = gd
     colorPalette.value = cp
 
+    const hasUserOriginal = !!pickUrl(data, USER_ORIGINAL_FIELDS)
+    const hasAiOriginal = !!pickUrl(data, AI_ORIGINAL_FIELDS)
+
     if (gd.length && cp.length) {
       activeTab.value = 'result'
-    } else if (data?.aiInputImageUrl || data?.sourceUrl || data?.coverUrl) {
-      activeTab.value = data?.aiInputImageUrl ? 'userOriginal' : 'original'
-    } else if (data?.aiGeneratedImageUrl || data?.aiRefinedImageUrl) {
+    } else if (hasUserOriginal || data?.sourceUrl || data?.coverUrl) {
+      activeTab.value = hasUserOriginal ? 'userOriginal' : 'original'
+    } else if (hasAiOriginal) {
       activeTab.value = 'aiOriginal'
     } else {
       activeTab.value = 'result'
@@ -184,6 +200,7 @@ async function loadDetail() {
 
 function switchTab(tab) {
   activeTab.value = tab
+  imageLoadError.value = false
   nextTick(() => {
     if ((tab === 'result' || tab === 'pattern') && hasPatternData.value) {
       renderCurrentTab()
@@ -214,9 +231,13 @@ function renderCurrentTab() {
   }
 }
 
-function onImageError(e) {
-  e.target.style.display = 'none'
+function onImageError() {
+  imageLoadError.value = true
 }
+
+watch(activeImageUrl, () => {
+  imageLoadError.value = false
+})
 </script>
 
 <style scoped>
