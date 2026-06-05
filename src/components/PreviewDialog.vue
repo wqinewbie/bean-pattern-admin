@@ -2,7 +2,7 @@
   <el-dialog
     v-model="visible"
     :title="`预览 - ${detail.name || '未命名'}`"
-    width="700px"
+    width="900px"
     :close-on-click-modal="false"
     @opened="onOpened"
     @closed="onClosed"
@@ -17,16 +17,25 @@
     </div>
 
     <template v-else>
-      <!-- 图纸信息 -->
       <div class="preview-info">
         <span>规格：{{ detail.gridSize }}x{{ detail.gridSize }}</span>
         <span>色数：{{ detail.colorCount }}</span>
         <span>品牌：{{ detail.brand || '-' }}</span>
         <span>来源：{{ sourceTypeLabel }}</span>
+        <span v-if="detail.taskId">任务：{{ detail.taskId }}</span>
       </div>
 
-      <!-- 标签切换 -->
       <div class="preview-tabs">
+        <span
+          v-if="userOriginalUrl"
+          :class="['tab-item', { active: activeTab === 'userOriginal' }]"
+          @click="switchTab('userOriginal')"
+        >用户上传原图</span>
+        <span
+          v-if="aiGeneratedOriginalUrl"
+          :class="['tab-item', { active: activeTab === 'aiOriginal' }]"
+          @click="switchTab('aiOriginal')"
+        >AI生成原图</span>
         <span
           :class="['tab-item', { active: activeTab === 'result' }]"
           @click="switchTab('result')"
@@ -36,30 +45,29 @@
           @click="switchTab('pattern')"
         >色号图</span>
         <span
-          v-if="detail.sourceUrl || detail.coverUrl"
+          v-if="!userOriginalUrl && originalUrl"
           :class="['tab-item', { active: activeTab === 'original' }]"
           @click="switchTab('original')"
         >原图</span>
       </div>
 
-      <!-- 效果图 / 色号图 -->
-      <div v-show="activeTab !== 'original'" class="preview-canvas-wrap">
+      <div v-show="activeTab === 'result' || activeTab === 'pattern'" class="preview-canvas-wrap">
         <canvas
           ref="previewCanvas"
           class="preview-canvas"
           :style="{ maxWidth: canvasDisplayWidth + 'px' }"
         ></canvas>
+        <span v-if="!hasPatternData" style="color:#8b90a7">暂无图纸数据</span>
       </div>
 
-      <!-- 原图 -->
-      <div v-show="activeTab === 'original'" class="preview-image-wrap">
+      <div v-show="isImageTab" class="preview-image-wrap">
         <img
-          v-if="originalUrl"
-          :src="originalUrl"
+          v-if="activeImageUrl"
+          :src="activeImageUrl"
           class="preview-image"
           @error="onImageError"
         />
-        <span v-else style="color:#8b90a7">无原图</span>
+        <span v-else style="color:#8b90a7">暂无图片</span>
       </div>
     </template>
 
@@ -97,14 +105,26 @@ watch(() => props.modelValue, (val) => { visible.value = val })
 watch(visible, (val) => { emit('update:modelValue', val) })
 
 const originalUrl = computed(() => detail.value.sourceUrl || detail.value.coverUrl || '')
+const isAiDetail = computed(() => !!(detail.value.taskId || detail.value.aiInputImageUrl || detail.value.aiGeneratedImageUrl || detail.value.aiRefinedImageUrl || String(detail.value.sourceType || '').toUpperCase().includes('AI')))
+const userOriginalUrl = computed(() => isAiDetail.value ? (detail.value.aiInputImageUrl || '') : '')
+const aiGeneratedOriginalUrl = computed(() => detail.value.aiGeneratedImageUrl || detail.value.aiRefinedImageUrl || '')
+const hasPatternData = computed(() => gridData.value.length > 0 && colorPalette.value.length > 0)
+const isImageTab = computed(() => activeTab.value === 'original' || activeTab.value === 'userOriginal' || activeTab.value === 'aiOriginal')
+const activeImageUrl = computed(() => {
+  if (activeTab.value === 'userOriginal') return userOriginalUrl.value
+  if (activeTab.value === 'aiOriginal') return aiGeneratedOriginalUrl.value
+  return originalUrl.value
+})
 
 const sourceTypeLabel = computed(() => {
   const map = {
-    'AI_GENERATE': 'AI生成',
-    'IMAGE_CONVERT': '图片转换',
-    'BLANK_CANVAS': '空白画板',
-    'DRAW': '画板绘制',
-    'EDIT': '编辑',
+    AI: 'AI生成',
+    AI_GENERATE: 'AI生成',
+    IMAGE_CONVERT: '图片转换',
+    LOCAL: '图片转换',
+    BLANK_CANVAS: '空白画板',
+    DRAW: '画板绘制',
+    EDIT: '编辑'
   }
   return map[detail.value.sourceType] || detail.value.sourceType || '未知'
 })
@@ -122,7 +142,10 @@ function onClosed() {
 }
 
 async function loadDetail() {
-  if (!props.recordId) { loadError.value = '记录ID无效'; return }
+  if (!props.recordId) {
+    loadError.value = '记录ID无效'
+    return
+  }
   loading.value = true
   loadError.value = ''
   const apiMap = {
@@ -134,45 +157,46 @@ async function loadDetail() {
   try {
     const data = await request.get(apiPath)
     detail.value = data || {}
-    const { gridData: gd, colorPalette: cp } = deriveFromMapped(data.mappedPixelData || '')
+    const { gridData: gd, colorPalette: cp } = deriveFromMapped(data?.mappedPixelData || '')
     gridData.value = gd
     colorPalette.value = cp
-    // 默认显示效果图（有数据时），否则看原图
+
     if (gd.length && cp.length) {
       activeTab.value = 'result'
-    } else if (data.sourceUrl || data.coverUrl) {
-      activeTab.value = 'original'
+    } else if (data?.aiInputImageUrl || data?.sourceUrl || data?.coverUrl) {
+      activeTab.value = data?.aiInputImageUrl ? 'userOriginal' : 'original'
+    } else if (data?.aiGeneratedImageUrl || data?.aiRefinedImageUrl) {
+      activeTab.value = 'aiOriginal'
     } else {
       activeTab.value = 'result'
     }
-    await nextTick()
-    if (activeTab.value !== 'original' && gd.length && cp.length) {
-      renderCurrentTab()
-    }
+
   } catch (e) {
     loadError.value = e.message || '加载失败'
   } finally {
     loading.value = false
+    await nextTick()
+    if ((activeTab.value === 'result' || activeTab.value === 'pattern') && hasPatternData.value) {
+      renderCurrentTab()
+    }
   }
 }
 
 function switchTab(tab) {
   activeTab.value = tab
   nextTick(() => {
-    if (tab !== 'original' && gridData.value.length && colorPalette.value.length) {
+    if ((tab === 'result' || tab === 'pattern') && hasPatternData.value) {
       renderCurrentTab()
     }
   })
 }
 
 function renderCurrentTab() {
-  if (!previewCanvas.value) return
+  if (!previewCanvas.value || !hasPatternData.value) return
   const canvas = previewCanvas.value
   const gd = gridData.value
   const cp = colorPalette.value
   const size = detail.value.gridSize || gd.length
-
-  // 计算 canvas 尺寸：最大 600 宽，按格子等比缩放
   const maxDisplay = 600
   const cellPixel = Math.max(4, Math.floor(maxDisplay / size))
   const drawSize = cellPixel * size
@@ -183,11 +207,9 @@ function renderCurrentTab() {
     renderResult(canvas, gd, cp)
     canvasDisplayWidth.value = drawSize
   } else if (activeTab.value === 'pattern') {
-    // pattern 画布大小由 renderPattern 内部根据 maxCanvasSize 调整
     canvas.width = drawSize + 80
     canvas.height = drawSize + 80
     renderPattern(canvas, gd, cp, size)
-    // pattern 实际尺寸可能超过容器，限制显示宽度
     canvasDisplayWidth.value = Math.min(canvas.width, maxDisplay)
   }
 }
@@ -200,7 +222,8 @@ function onImageError(e) {
 <style scoped>
 .preview-info {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   margin-bottom: 16px;
   font-size: 13px;
   color: #606266;
@@ -212,7 +235,7 @@ function onImageError(e) {
   margin-bottom: 16px;
 }
 .tab-item {
-  padding: 8px 20px;
+  padding: 8px 18px;
   cursor: pointer;
   font-size: 14px;
   color: #606266;
@@ -231,7 +254,7 @@ function onImageError(e) {
 }
 .preview-canvas-wrap {
   text-align: center;
-  min-height: 200px;
+  min-height: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -243,14 +266,14 @@ function onImageError(e) {
 }
 .preview-image-wrap {
   text-align: center;
-  min-height: 200px;
+  min-height: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .preview-image {
   max-width: 100%;
-  max-height: 500px;
+  max-height: 560px;
   border-radius: 4px;
 }
 </style>
