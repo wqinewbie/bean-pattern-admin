@@ -63,8 +63,8 @@
       <div v-show="isImageTab" class="preview-image-wrap">
         <img
           v-if="activeImageUrl && !imageLoadError"
-          :key="activeImageUrl"
-          :src="activeImageUrl"
+          :key="proxiedActiveImageUrl"
+          :src="proxiedActiveImageUrl"
           class="preview-image"
           @error="onImageError"
         />
@@ -128,6 +128,16 @@ const activeImageUrl = computed(() => {
   if (activeTab.value === 'aiOriginal') return aiGeneratedOriginalUrl.value
   return originalUrl.value
 })
+const proxiedActiveImageUrl = computed(() => buildImageProxyUrl(activeImageUrl.value))
+
+function buildImageProxyUrl(url) {
+  if (typeof url !== 'string' || !url.trim()) return ''
+  const trimmedUrl = url.trim()
+  if (!/^https?:\/\//i.test(trimmedUrl)) return trimmedUrl
+
+  const apiBase = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+  return `${apiBase}/api/image/proxy?url=${encodeURIComponent(trimmedUrl)}`
+}
 
 const sourceTypeLabel = computed(() => {
   const map = {
