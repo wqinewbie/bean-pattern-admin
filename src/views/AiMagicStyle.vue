@@ -119,16 +119,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import { DICT_TYPE } from '../constants/dict'
+import { useDict } from '../composables/useDict'
 import request from '../utils/request'
 import { uploadImageFile, validateImageFile } from '../utils/imageUpload'
 
-const modelOptions = [
+const fallbackModelOptions = [
   { label: 'Seedream 5 Lite（默认）', value: 'seedream-5-lite' },
   { label: '即梦 4.0', value: 'jimeng-t2i-v40' }
 ]
+const aiModelDict = useDict(DICT_TYPE.AI_MODEL_KEY)
+const modelOptions = computed(() => (
+  aiModelDict.options.value.length ? aiModelDict.options.value : fallbackModelOptions
+))
 
 const styles = ref([])
 const tableLoading = ref(false)
@@ -153,7 +159,7 @@ function createEmptyForm() {
 
 const getModelLabel = (modelKey) => {
   if (!modelKey) return '默认'
-  return modelOptions.find((item) => item.value === modelKey)?.label || modelKey
+  return modelOptions.value.find((item) => item.value === modelKey)?.label || modelKey
 }
 
 const loadStyles = async () => {

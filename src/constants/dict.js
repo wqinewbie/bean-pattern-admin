@@ -27,5 +27,6 @@ export const DICT_TYPE = {
   FEEDBACK_STATUS: 'feedback_status',
   FEEDBACK_CATEGORY: 'feedback_category',
   NOTIFICATION_TYPE: 'notification_type',
-  NOTIFICATION_ACTION_TYPE: 'notification_action_type'
+  NOTIFICATION_ACTION_TYPE: 'notification_action_type',
+  AI_MODEL_KEY: 'ai_model_key'
 }
