@@ -129,7 +129,8 @@ import { uploadImageFile, validateImageFile } from '../utils/imageUpload'
 
 const fallbackModelOptions = [
   { label: 'Seedream 5 Lite（默认）', value: 'seedream-5-lite' },
-  { label: '即梦 4.0', value: 'jimeng-t2i-v40' }
+  { label: '即梦 4.0', value: 'jimeng-t2i-v40' },
+  { label: '混元生图 3.0', value: 'hunyuan-image-v3' }
 ]
 const aiModelDict = useDict(DICT_TYPE.AI_MODEL_KEY)
 const modelOptions = computed(() => (
