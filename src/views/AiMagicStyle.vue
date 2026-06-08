@@ -13,12 +13,7 @@
         <el-table-column prop="name" label="风格名称" width="120" />
         <el-table-column prop="icon" label="图标" width="80" align="center">
           <template #default="{ row }">
-            <el-image
-              v-if="row.icon"
-              :src="row.icon"
-              style="width: 40px; height: 40px"
-              fit="cover"
-            />
+            <el-image v-if="row.icon" :src="row.icon" style="width: 40px; height: 40px" fit="cover" />
           </template>
         </el-table-column>
         <el-table-column prop="tag" label="标签" width="120" />
@@ -45,24 +40,17 @@
       </el-table>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑风格' : '添加风格'" width="600px">
-      <el-form :model="form" label-width="120px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑风格' : '添加风格'" width="680px">
+      <el-form :model="form" label-width="130px">
         <el-form-item label="风格名称">
           <el-input v-model="form.name" placeholder="如：人物特化" />
         </el-form-item>
         <el-form-item label="图标">
-          <el-upload
-            class="icon-uploader"
-            :show-file-list="false"
-            :before-upload="beforeUpload"
-            accept="image/*"
-          >
+          <el-upload class="icon-uploader" :show-file-list="false" :before-upload="beforeUpload" accept="image/*">
             <img v-if="form.icon" :src="form.icon" class="icon-preview" />
             <el-icon v-else class="icon-uploader-icon"><Plus /></el-icon>
           </el-upload>
-          <div class="form-tip">
-            建议尺寸：100x100px，支持 jpg/png/gif，大小不超过 2MB
-          </div>
+          <div class="form-tip">建议尺寸：100x100px，支持 jpg/png/gif，大小不超过 2MB</div>
         </el-form-item>
         <el-form-item label="标签">
           <el-input v-model="form.tag" placeholder="如：适用人物" />
@@ -70,16 +58,27 @@
         <el-form-item label="描述">
           <el-input v-model="form.description" type="textarea" :rows="2" placeholder="风格描述" />
         </el-form-item>
-        <el-form-item label="AI提示词模板">
+        <el-form-item label="正向提示词">
           <el-input
             v-model="form.promptTemplate"
             type="textarea"
-            :rows="3"
-            placeholder="如：portrait, detailed face, high quality"
+            :rows="4"
+            maxlength="512"
+            show-word-limit
+            placeholder="描述希望模型生成的画面风格"
           />
-          <div class="form-tip">
-            正式版 AI 服务会使用此模板生成图片
-          </div>
+          <div class="form-tip">所有模型都会使用正向提示词。</div>
+        </el-form-item>
+        <el-form-item label="反向提示词">
+          <el-input
+            v-model="form.negativePromptTemplate"
+            type="textarea"
+            :rows="4"
+            maxlength="1024"
+            show-word-limit
+            placeholder="描述需要避免的内容，如：杂色、渐变、复杂背景、细碎纹理"
+          />
+          <div class="form-tip">混元会独立传反向提示词；其他模型会作为“请避免”追加到提示词末尾。</div>
         </el-form-item>
         <el-form-item label="模型">
           <el-select
@@ -96,9 +95,7 @@
               :value="item.value"
             />
           </el-select>
-          <div class="form-tip">
-            对应 Python ai-service 配置中的 models key
-          </div>
+          <div class="form-tip">对应 Python ai-service 配置中的 models key。</div>
         </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="form.sortOrder" :min="0" :max="999" />
@@ -152,6 +149,7 @@ function createEmptyForm() {
     tag: '',
     description: '',
     promptTemplate: '',
+    negativePromptTemplate: '',
     modelKey: '',
     sortOrder: 0,
     enabled: 1
@@ -182,7 +180,7 @@ const handleAdd = () => {
 
 const handleEdit = (row) => {
   isEdit.value = true
-  form.value = { ...row }
+  form.value = { negativePromptTemplate: '', ...row }
   dialogVisible.value = true
 }
 
@@ -269,6 +267,7 @@ onMounted(() => {
   color: #999;
   font-size: 12px;
   margin-top: 4px;
+  line-height: 1.4;
 }
 .sort-tip {
   margin-left: 8px;
