@@ -28,6 +28,17 @@
           />
         </el-form-item>
 
+        <el-form-item label="反向提示词">
+          <el-input
+            v-model="form.negativePromptTemplate"
+            type="textarea"
+            :rows="5"
+            maxlength="1200"
+            show-word-limit
+            placeholder="输入不希望模型生成的内容，可留空"
+          />
+        </el-form-item>
+
         <div class="actions">
           <el-button type="primary" :loading="submitting || polling" @click="submitTest">
             {{ polling ? '生成中' : '生成图片' }}
@@ -106,7 +117,8 @@ let elapsedTimer = null
 
 const form = ref({
   modelKey: '',
-  promptTemplate: ''
+  promptTemplate: '',
+  negativePromptTemplate: ''
 })
 
 const statusType = computed(() => {
@@ -132,7 +144,8 @@ async function submitTest() {
   try {
     const data = await request.post('/admin/ai-prompt-test/generate', {
       modelKey: form.value.modelKey,
-      promptTemplate: form.value.promptTemplate
+      promptTemplate: form.value.promptTemplate,
+      negativePromptTemplate: form.value.negativePromptTemplate
     })
     taskId.value = data.taskId
     taskStatus.value = data.status || 'PENDING'
