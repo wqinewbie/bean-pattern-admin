@@ -41,7 +41,6 @@
           <el-menu-item index="/dict-manage"><el-icon><List/></el-icon>字典管理</el-menu-item>
           <el-menu-item index="/watermark"><el-icon><Brush/></el-icon>水印配置</el-menu-item>
           <el-menu-item index="/ai-magic-style"><el-icon><MagicStick/></el-icon>AI魔法风格</el-menu-item>
-          <el-menu-item index="/ai-provider-quotas"><el-icon><Monitor/></el-icon>AI Key额度监控</el-menu-item>
           <el-menu-item index="/ai-size-presets"><el-icon><Grid/></el-icon>AI图纸尺寸档位</el-menu-item>
           <el-menu-item index="/notification-templates"><el-icon><Bell/></el-icon>消息模板配置</el-menu-item>
           <el-menu-item index="/admins"><el-icon><Lock/></el-icon>管理员</el-menu-item>
