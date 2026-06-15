@@ -37,9 +37,9 @@ const routes = [
       { path: 'watermark', component: () => import('../views/Watermark.vue'), meta: { title: '水印配置' } },
       { path: 'popup', component: () => import('../views/Popup.vue'), meta: { title: '弹窗管理' } },
       { path: 'ai-magic-style', component: () => import('../views/AiMagicStyle.vue'), meta: { title: 'AI魔法风格' } },
+      { path: 'ai-provider-quotas', component: () => import('../views/AiProviderQuotas.vue'), meta: { title: 'AI Key额度监控' } },
       { path: 'notification-templates', component: () => import('../views/NotificationTemplates.vue'), meta: { title: '消息模板配置' } },
       { path: 'ai-size-presets', component: () => import('../views/AiSizePresets.vue'), meta: { title: 'AI图纸尺寸档位' } },
-      { path: 'ai-prompt-test', component: () => import('../views/AiPromptTest.vue'), meta: { title: 'AI Prompt Test' } },
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/' }
