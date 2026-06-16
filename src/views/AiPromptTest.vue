@@ -6,6 +6,24 @@
       </template>
 
       <el-form :model="form" label-width="96px" class="test-form">
+        <el-form-item label="参考图">
+          <div class="image-upload-area">
+            <el-upload
+              class="image-uploader"
+              :show-file-list="false"
+              :before-upload="beforeImageUpload"
+              accept="image/*"
+            >
+              <img v-if="form.imageUrl" :src="form.imageUrl" class="uploaded-image" />
+              <el-icon v-else class="uploader-icon"><Plus /></el-icon>
+            </el-upload>
+            <div class="upload-tip">
+              <p>{{ uploadingImage ? '上传中...' : '点击上传图生图参考图' }}</p>
+              <p>支持 jpg、png、gif、webp，大小不超过 2MB</p>
+            </div>
+          </div>
+        </el-form-item>
+
         <el-form-item label="模型">
           <el-select v-model="form.modelKey" clearable filterable placeholder="留空使用默认模型">
             <el-option
@@ -89,9 +107,11 @@
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { DICT_TYPE } from '../constants/dict'
 import { useDict } from '../composables/useDict'
 import request from '../utils/request'
+import { uploadImageFile, validateImageFile } from '../utils/imageUpload'
 
 const fallbackModelOptions = [
   { label: 'Seedream 5 Lite（默认）', value: 'seedream-5-lite' },
@@ -106,6 +126,7 @@ const modelOptions = computed(() => (
 
 const submitting = ref(false)
 const polling = ref(false)
+const uploadingImage = ref(false)
 const taskId = ref('')
 const taskStatus = ref('')
 const resultUrl = ref('')
@@ -116,6 +137,7 @@ let pollTimer = null
 let elapsedTimer = null
 
 const form = ref({
+  imageUrl: '',
   modelKey: '',
   promptTemplate: '',
   negativePromptTemplate: ''
@@ -129,6 +151,11 @@ const statusType = computed(() => {
 })
 
 async function submitTest() {
+  if (!form.value.imageUrl) {
+    ElMessage.warning('请先上传参考图')
+    return
+  }
+
   if (!form.value.promptTemplate.trim()) {
     ElMessage.warning('请先填写提示词')
     return
@@ -143,6 +170,7 @@ async function submitTest() {
 
   try {
     const data = await request.post('/admin/ai-prompt-test/generate', {
+      imageUrl: form.value.imageUrl,
       modelKey: form.value.modelKey,
       promptTemplate: form.value.promptTemplate,
       negativePromptTemplate: form.value.negativePromptTemplate
@@ -153,6 +181,22 @@ async function submitTest() {
   } finally {
     submitting.value = false
   }
+}
+
+async function beforeImageUpload(file) {
+  if (!validateImageFile(file, { maxSizeMB: 2 })) return false
+
+  uploadingImage.value = true
+  try {
+    const imageUrl = await uploadImageFile(file, { filename: file.name || 'prompt-test-source.jpg' })
+    if (imageUrl) {
+      form.value.imageUrl = imageUrl
+      ElMessage.success('上传成功')
+    }
+  } finally {
+    uploadingImage.value = false
+  }
+  return false
 }
 
 function startPolling() {
@@ -229,6 +273,49 @@ onBeforeUnmount(stopPolling)
 .actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.image-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.image-uploader {
+  width: 128px;
+  height: 128px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.image-uploader:hover {
+  border-color: #409eff;
+}
+
+.uploaded-image {
+  display: block;
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+}
+
+.uploader-icon {
+  width: 128px;
+  height: 128px;
+  font-size: 28px;
+  color: #8c939d;
+}
+
+.upload-tip {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.upload-tip p {
+  margin: 0;
 }
 
 .result-panel {
