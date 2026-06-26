@@ -63,7 +63,7 @@
             v-model="form.promptTemplate"
             type="textarea"
             :rows="4"
-            maxlength="512"
+            maxlength="4000"
             show-word-limit
             placeholder="描述希望模型生成的画面风格"
           />
@@ -74,7 +74,7 @@
             v-model="form.negativePromptTemplate"
             type="textarea"
             :rows="4"
-            maxlength="1024"
+            maxlength="4000"
             show-word-limit
             placeholder="描述需要避免的内容，如：杂色、渐变、复杂背景、细碎纹理"
           />
