@@ -20,7 +20,7 @@
           <el-menu-item index="/user-boxes"><el-icon><Box/></el-icon>用户图纸箱</el-menu-item>
           <el-menu-item index="/user-drafts"><el-icon><Document/></el-icon>用户草稿箱</el-menu-item>
           <el-menu-item index="/user-history"><el-icon><Clock/></el-icon>用户时光机</el-menu-item>
-          <el-menu-item index="/bead-library"><el-icon><Grid/></el-icon>品牌色盘色码</el-menu-item>
+          <el-menu-item index="/bead-library"><el-icon><Grid/></el-icon>品牌套装色码</el-menu-item>
           <el-menu-item index="/banners"><el-icon><FocusRight/></el-icon>Banner管理</el-menu-item>
           <el-menu-item index="/popup"><el-icon><Bell/></el-icon>弹窗管理</el-menu-item>
           <el-menu-item index="/tutorials"><el-icon><MagicStick/></el-icon>魔法小课堂</el-menu-item>
