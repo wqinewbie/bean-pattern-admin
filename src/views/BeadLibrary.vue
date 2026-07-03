@@ -64,6 +64,94 @@
         </div>
       </el-tab-pane>
 
+      <el-tab-pane label="数据审计" name="audit">
+        <div class="tab-content">
+          <div class="toolbar">
+            <el-button type="primary" :loading="auditLoading" @click="loadAudit">
+              <el-icon><Refresh /></el-icon>刷新审计
+            </el-button>
+            <el-tag v-if="auditSummary" :type="auditSummary.healthy ? 'success' : 'warning'" size="large">
+              {{ auditSummary.healthy ? '核心检查正常' : '存在需要处理的问题' }}
+            </el-tag>
+          </div>
+
+          <div v-if="auditSummary" class="audit-metrics">
+            <div class="metric"><span>品牌</span><strong>{{ auditSummary.brands }}</strong></div>
+            <div class="metric"><span>套装</span><strong>{{ auditSummary.kits }}</strong></div>
+            <div class="metric"><span>色码</span><strong>{{ auditSummary.colors }}</strong></div>
+            <div class="metric"><span>套装颜色</span><strong>{{ auditSummary.kitColors }}</strong></div>
+            <div class="metric" :class="{ warning: auditSummary.kitCountMismatches }">
+              <span>数量不一致</span><strong>{{ auditSummary.kitCountMismatches }}</strong>
+            </div>
+            <div class="metric" :class="{ warning: auditSummary.virtualKitColors }">
+              <span>VT占位</span><strong>{{ auditSummary.virtualKitColors }}</strong>
+            </div>
+            <div class="metric" :class="{ warning: auditSummary.badColorValues }">
+              <span>色值异常</span><strong>{{ auditSummary.badColorValues }}</strong>
+            </div>
+            <div class="metric muted">
+              <span>旧色盘重复</span><strong>{{ auditSummary.legacyPaletteDuplicates }}</strong>
+            </div>
+          </div>
+
+          <el-alert
+            v-if="auditSummary?.healthy"
+            type="success"
+            title="当前核心颜色数据正常：套装数量、VT占位、HEX/RGB 均未发现异常。"
+            :closable="false"
+            show-icon
+          />
+
+          <div class="audit-section">
+            <div class="section-header">套装数量不一致</div>
+            <el-table :data="auditData.kitCountMismatches" stripe>
+              <el-table-column prop="brandName" label="品牌" width="140" />
+              <el-table-column prop="kitId" label="套装ID" width="100" />
+              <el-table-column prop="colorCount" label="标称色数" width="120" />
+              <el-table-column prop="colorTotal" label="实际色数" width="120" />
+            </el-table>
+          </div>
+
+          <div class="audit-section">
+            <div class="section-header">VT 占位色</div>
+            <el-table :data="auditData.virtualKitColors" stripe>
+              <el-table-column prop="brandName" label="品牌" width="140" />
+              <el-table-column prop="kitId" label="套装ID" width="100" />
+              <el-table-column prop="colorCount" label="套装" width="100" />
+              <el-table-column prop="code" label="色号" width="100" />
+              <el-table-column prop="hex" label="HEX" width="100" />
+              <el-table-column label="RGB">
+                <template #default="{ row }">{{ row.r }}, {{ row.g }}, {{ row.b }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <div class="audit-section">
+            <div class="section-header">色值异常</div>
+            <el-table :data="auditData.badColorValues" stripe>
+              <el-table-column prop="code" label="色号" width="120" />
+              <el-table-column prop="displayName" label="显示名" width="120" />
+              <el-table-column prop="hex" label="HEX" width="100" />
+              <el-table-column label="RGB">
+                <template #default="{ row }">{{ row.r }}, {{ row.g }}, {{ row.b }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <div class="audit-section">
+            <div class="section-header">旧色盘重复记录</div>
+            <el-table :data="auditData.legacyPaletteDuplicates" stripe max-height="360">
+              <el-table-column prop="brandName" label="品牌" width="140" />
+              <el-table-column prop="kitId" label="套装ID" width="100" />
+              <el-table-column prop="colorCount" label="套装" width="100" />
+              <el-table-column prop="code" label="重复色号" width="120" />
+              <el-table-column prop="legacyHits" label="命中次数" width="100" />
+              <el-table-column prop="legacyPalettes" label="旧色盘" />
+            </el-table>
+          </div>
+        </div>
+      </el-tab-pane>
+
       <el-tab-pane label="色码库" name="colors">
         <BeadColorTab ref="colorTabRef" />
       </el-tab-pane>
@@ -114,7 +202,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Refresh } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import BeadColorTab from '../components/BeadColorTab.vue'
 import BeadBrandTab from '../components/BeadBrandTab.vue'
@@ -136,6 +224,15 @@ const availableColors = ref([])
 const selectedColorCodes = ref([])
 const colorSearch = ref('')
 const addingColors = ref(false)
+
+const auditLoading = ref(false)
+const auditSummary = ref(null)
+const auditData = ref({
+  kitCountMismatches: [],
+  virtualKitColors: [],
+  badColorValues: [],
+  legacyPaletteDuplicates: []
+})
 
 function kitCountType(row) {
   const expected = Number(row.colorCount ?? row.color_count ?? 0)
@@ -243,7 +340,28 @@ async function removeColorFromKit(row) {
   }
 }
 
-onMounted(loadBrands)
+async function loadAudit() {
+  auditLoading.value = true
+  try {
+    const res = await request.get('/admin/bead/audit')
+    auditSummary.value = res.summary
+    auditData.value = {
+      kitCountMismatches: res.kitCountMismatches || [],
+      virtualKitColors: res.virtualKitColors || [],
+      badColorValues: res.badColorValues || [],
+      legacyPaletteDuplicates: res.legacyPaletteDuplicates || []
+    }
+  } catch (error) {
+    ElMessage.error('加载颜色审计失败')
+  } finally {
+    auditLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadBrands()
+  await loadAudit()
+})
 </script>
 
 <style scoped>
@@ -315,5 +433,51 @@ onMounted(loadBrands)
   color: #303133;
   padding-bottom: 12px;
   border-bottom: 2px solid #409eff;
+}
+
+.audit-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.metric {
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fff;
+}
+
+.metric span {
+  display: block;
+  color: #606266;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.metric strong {
+  color: #303133;
+  font-size: 22px;
+}
+
+.metric.warning {
+  border-color: #e6a23c;
+  background: #fdf6ec;
+}
+
+.metric.muted {
+  background: #f7f8fa;
+}
+
+.audit-section {
+  margin-top: 20px;
+}
+
+.section-header {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 10px;
 }
 </style>
