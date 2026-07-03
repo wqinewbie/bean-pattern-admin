@@ -89,9 +89,6 @@
             <div class="metric" :class="{ warning: auditSummary.badColorValues }">
               <span>色值异常</span><strong>{{ auditSummary.badColorValues }}</strong>
             </div>
-            <div class="metric muted">
-              <span>旧色盘重复</span><strong>{{ auditSummary.legacyPaletteDuplicates }}</strong>
-            </div>
           </div>
 
           <el-alert
@@ -138,17 +135,6 @@
             </el-table>
           </div>
 
-          <div class="audit-section">
-            <div class="section-header">旧色盘重复记录</div>
-            <el-table :data="auditData.legacyPaletteDuplicates" stripe max-height="360">
-              <el-table-column prop="brandName" label="品牌" width="140" />
-              <el-table-column prop="kitId" label="套装ID" width="100" />
-              <el-table-column prop="colorCount" label="套装" width="100" />
-              <el-table-column prop="code" label="重复色号" width="120" />
-              <el-table-column prop="legacyHits" label="命中次数" width="100" />
-              <el-table-column prop="legacyPalettes" label="旧色盘" />
-            </el-table>
-          </div>
         </div>
       </el-tab-pane>
 
@@ -230,8 +216,7 @@ const auditSummary = ref(null)
 const auditData = ref({
   kitCountMismatches: [],
   virtualKitColors: [],
-  badColorValues: [],
-  legacyPaletteDuplicates: []
+  badColorValues: []
 })
 
 function kitCountType(row) {
@@ -348,8 +333,7 @@ async function loadAudit() {
     auditData.value = {
       kitCountMismatches: res.kitCountMismatches || [],
       virtualKitColors: res.virtualKitColors || [],
-      badColorValues: res.badColorValues || [],
-      legacyPaletteDuplicates: res.legacyPaletteDuplicates || []
+      badColorValues: res.badColorValues || []
     }
   } catch (error) {
     ElMessage.error('加载颜色审计失败')
@@ -464,10 +448,6 @@ onMounted(async () => {
 .metric.warning {
   border-color: #e6a23c;
   background: #fdf6ec;
-}
-
-.metric.muted {
-  background: #f7f8fa;
 }
 
 .audit-section {
